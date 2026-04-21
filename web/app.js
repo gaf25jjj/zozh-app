@@ -1,20 +1,26 @@
+let user = {
+  name: "",
+  age: 0,
+  height: 0,
+  weight: 0
+};
+
 let health = 100;
 let energy = 100;
 let immunity = 100;
 let stress = 0;
 let risk = 0;
-let step = 1;
 
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
-}
+let step = 0;
 
-function updateStats() {
-  health = clamp(health, 0, 100);
-  energy = clamp(energy, 0, 100);
-  immunity = clamp(immunity, 0, 100);
-  stress = clamp(stress, 0, 100);
-  risk = clamp(risk, 0, 100);
+function clamp(v){ return Math.max(0, Math.min(100, v)); }
+
+function updateStats(){
+  health = clamp(health);
+  energy = clamp(energy);
+  immunity = clamp(immunity);
+  stress = clamp(stress);
+  risk = clamp(risk);
 
   document.getElementById("health-value").textContent = health;
   document.getElementById("energy-value").textContent = energy;
@@ -22,207 +28,177 @@ function updateStats() {
   document.getElementById("stress-value").textContent = stress;
   document.getElementById("risk-value").textContent = risk;
 
-  document.getElementById("health-bar").style.width = `${health}%`;
-  document.getElementById("energy-bar").style.width = `${energy}%`;
-  document.getElementById("immunity-bar").style.width = `${immunity}%`;
-  document.getElementById("stress-bar").style.width = `${stress}%`;
-  document.getElementById("risk-bar").style.width = `${risk}%`;
-
-  document.getElementById("scene-step").textContent = `Этап ${step}`;
+  document.getElementById("health-bar").style.width = health + "%";
+  document.getElementById("energy-bar").style.width = energy + "%";
+  document.getElementById("immunity-bar").style.width = immunity + "%";
+  document.getElementById("stress-bar").style.width = stress + "%";
+  document.getElementById("risk-bar").style.width = risk + "%";
 }
 
-function renderScene({ title, text, desc = "", feedback = "", options = [] }) {
+function showProfileForm(){
+  document.getElementById("scene-title").textContent = "Профиль";
+
+  document.getElementById("scene").innerHTML = `
+    <div class="scene-panel">
+      <p class="scene-text">Введи данные о себе</p>
+
+      <input id="name" placeholder="Имя" class="input"/>
+      <input id="age" placeholder="Возраст" type="number" class="input"/>
+      <input id="height" placeholder="Рост (см)" type="number" class="input"/>
+      <input id="weight" placeholder="Вес (кг)" type="number" class="input"/>
+
+      <button class="choice-btn primary" onclick="saveProfile()">Начать</button>
+    </div>
+  `;
+}
+
+function saveProfile(){
+  user.name = document.getElementById("name").value || "Пользователь";
+  user.age = +document.getElementById("age").value;
+  user.height = +document.getElementById("height").value;
+  user.weight = +document.getElementById("weight").value;
+
+  step = 1;
+  next();
+}
+
+function next(){
+  switch(step){
+    case 1:
+      render("Утро", "Ты позавтракал?",
+        () => { energy+=10; immunity+=5; },
+        () => { energy-=15; stress+=10; risk+=5; }
+      );
+      break;
+
+    case 2:
+      render("Вода", "Пил воду утром?",
+        () => { immunity+=5; },
+        () => { risk+=5; }
+      );
+      break;
+
+    case 3:
+      render("Движение", "Ты двигался днём?",
+        () => { health+=10; stress-=5; },
+        () => { stress+=10; risk+=5; }
+      );
+      break;
+
+    case 4:
+      render("Обед", "Что ты ел?",
+        () => { health+=5; },
+        () => { risk+=10; }
+      );
+      break;
+
+    case 5:
+      render("Стресс", "Был ли стресс?",
+        () => { stress+=15; immunity-=5; },
+        () => { stress-=5; }
+      );
+      break;
+
+    case 6:
+      render("Спорт", "Занимался спортом?",
+        () => { health+=10; immunity+=5; },
+        () => { risk+=5; }
+      );
+      break;
+
+    case 7:
+      render("Курение", "Ты курил сегодня?",
+        () => { risk+=15; immunity-=10; },
+        () => { }
+      );
+      break;
+
+    case 8:
+      render("Алкоголь", "Ты пил алкоголь?",
+        () => { risk+=10; energy-=10; },
+        () => { }
+      );
+      break;
+
+    case 9:
+      render("Вода за день", "Сколько воды выпил?",
+        () => { health+=5; },
+        () => { risk+=5; }
+      );
+      break;
+
+    case 10:
+      render("Сон", "Выспался?",
+        () => { energy+=10; stress-=5; },
+        () => { stress+=10; risk+=10; }
+      );
+      break;
+
+    default:
+      finish();
+  }
+
+  updateStats();
+}
+
+function render(title, text, good, bad){
   document.getElementById("scene-title").textContent = title;
-
-  const feedbackBlock = feedback
-    ? `
-      <div class="feedback-box tip-panel">
-        <p class="feedback-label">Профилактический комментарий</p>
-        <p class="feedback-text">${feedback}</p>
-      </div>
-    `
-    : "";
-
-  const buttons = options
-    .map(
-      (option) => `
-        <button class="choice-btn ${option.variant || "secondary"}" onclick="${option.action}">
-          <span class="btn-title">${option.title}</span>
-          ${option.subtitle ? `<span class="btn-subtitle">${option.subtitle}</span>` : ""}
-        </button>
-      `
-    )
-    .join("");
 
   document.getElementById("scene").innerHTML = `
     <div class="scene-panel">
       <p class="scene-text">${text}</p>
-      ${desc ? `<p class="scene-desc">${desc}</p>` : ""}
-      ${feedbackBlock}
+
       <div class="choice-grid">
-        ${buttons}
+        <button class="choice-btn primary" onclick="choose(true)">Да</button>
+        <button class="choice-btn secondary" onclick="choose(false)">Нет</button>
       </div>
     </div>
   `;
+
+  window.currentGood = good;
+  window.currentBad = bad;
 }
 
-function startGame() {
-  step = 1;
-  renderScene({
-    title: "Сценарий дня",
-    text: "Ты проснулся утром. Что будешь делать?",
-    desc: "Первое решение дня влияет на уровень энергии, стресс и общее самочувствие.",
-    options: [
-      {
-        title: "🍳 Полезно позавтракать",
-        subtitle: "Получить энергию на утро",
-        action: "chooseBreakfast()",
-        variant: "primary"
-      },
-      {
-        title: "❌ Пропустить завтрак",
-        subtitle: "Поспешить и уйти без еды",
-        action: "skipBreakfast()",
-        variant: "secondary"
-      }
-    ]
-  });
-  updateStats();
+function choose(val){
+  if(val){
+    currentGood();
+  } else {
+    currentBad();
+  }
+  step++;
+  next();
 }
 
-function chooseBreakfast() {
-  energy += 10;
-  immunity += 5;
-  stress -= 5;
-  step = 2;
+function finish(){
+  let bmi = user.weight / ((user.height/100)**2);
 
-  renderScene({
-    title: "День",
-    text: "Наступил день. Как ты проведёшь свободное время?",
-    desc: "Физическая активность снижает стресс и помогает профилактике гиподинамии.",
-    feedback:
-      "Регулярный завтрак поддерживает уровень энергии и помогает лучше концентрироваться в течение дня.",
-    options: [
-      {
-        title: "🚶 Пойти на прогулку",
-        subtitle: "Активность и свежий воздух",
-        action: "walk()",
-        variant: "primary"
-      },
-      {
-        title: "📱 Листать телефон лёжа",
-        subtitle: "Минимум движения",
-        action: "phone()",
-        variant: "secondary"
-      }
-    ]
-  });
+  let rec = [];
 
-  updateStats();
-}
+  if(stress>50) rec.push("Снизить стресс");
+  if(risk>50) rec.push("Снизить факторы риска");
+  if(energy<50) rec.push("Нормализовать сон");
+  if(immunity<50) rec.push("Укреплять иммунитет");
 
-function skipBreakfast() {
-  energy -= 15;
-  stress += 10;
-  risk += 5;
-  step = 2;
-
-  renderScene({
-    title: "День",
-    text: "Ты уже чувствуешь усталость. Что выберешь дальше?",
-    desc: "Даже после неудачного начала дня можно улучшить показатели полезными действиями.",
-    feedback:
-      "Пропуск завтрака может приводить к слабости, снижению концентрации и повышению уровня стресса.",
-    options: [
-      {
-        title: "🚶 Пойти на прогулку",
-        subtitle: "Компенсировать усталость движением",
-        action: "walk()",
-        variant: "primary"
-      },
-      {
-        title: "📱 Остаться в телефоне",
-        subtitle: "Пассивный отдых без движения",
-        action: "phone()",
-        variant: "secondary"
-      }
-    ]
-  });
-
-  updateStats();
-}
-
-function walk() {
-  health += 10;
-  stress -= 10;
-  immunity += 5;
-  risk -= 5;
-  step = 3;
-
-  finishGame(
-    "🟢 Отличный результат",
-    "Ты сделал выбор в пользу полезных привычек. Это помогает поддерживать здоровье, снижать стресс и уменьшать риск заболеваний.",
-    true
-  );
-}
-
-function phone() {
-  stress += 10;
-  energy -= 10;
-  risk += 10;
-  health -= 5;
-  step = 3;
-
-  finishGame(
-    "🔴 Есть над чем поработать",
-    "Некоторые решения повысили стресс и риск заболеваний. Полезные привычки формируются постепенно — главное, начать менять режим дня.",
-    false
-  );
-}
-
-function finishGame(title, text, isGoodResult) {
-  document.getElementById("scene-title").textContent = "Итог дня";
-  document.getElementById("scene-step").textContent = "Результат";
+  document.getElementById("scene-title").textContent = "Результат";
 
   document.getElementById("scene").innerHTML = `
     <div class="result-panel">
-      <div class="result-top">
-        <div class="result-icon ${isGoodResult ? "good" : "bad"}">
-          ${isGoodResult ? "✅" : "⚠️"}
-        </div>
-        <div style="flex:1;">
-          <h3 class="result-title">${title}</h3>
-          <p class="result-text">${text}</p>
-        </div>
-      </div>
+      <h3>${user.name}, твой результат</h3>
 
-      <div class="summary-grid">
-        <div class="summary-card">
-          <strong>Что это показывает</strong>
-          Привычки напрямую влияют на физическое и психоэмоциональное состояние человека.
-        </div>
-        <div class="summary-card">
-          <strong>Профилактический вывод</strong>
-          Рациональное питание, движение и снижение гиподинамии помогают профилактике многих нарушений здоровья.
-        </div>
-      </div>
+      <p>ИМТ: ${bmi.toFixed(1)}</p>
 
-      <button class="restart-btn" onclick="restartGame()">🔄 Пройти ещё раз</button>
+      <p>Здоровье: ${health}</p>
+      <p>Стресс: ${stress}</p>
+      <p>Риск: ${risk}</p>
+
+      <h4>Рекомендации:</h4>
+      <ul>${rec.map(r=>`<li>${r}</li>`).join("")}</ul>
+
+      <button class="restart-btn" onclick="location.reload()">Сначала</button>
     </div>
   `;
-
-  updateStats();
 }
 
-function restartGame() {
-  health = 100;
-  energy = 100;
-  immunity = 100;
-  stress = 0;
-  risk = 0;
-  startGame();
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  startGame();
+document.addEventListener("DOMContentLoaded", ()=>{
+  showProfileForm();
 });
