@@ -11,9 +11,9 @@
   --shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
   --good: linear-gradient(90deg, #34d399, #10b981);
   --energy: linear-gradient(90deg, #fde047, #f59e0b);
-  --immunity: linear-gradient(90deg, #60a5fa, #3b82f6);
+  --hydration: linear-gradient(90deg, #38bdf8, #0ea5e9);
   --stress: linear-gradient(90deg, #fb7185, #e11d48);
-  --risk: linear-gradient(90deg, #f97316, #ef4444);
+  --sleep: linear-gradient(90deg, #a78bfa, #7c3aed);
   --primary: linear-gradient(135deg, #22c55e, #16a34a);
   --secondary: rgba(255, 255, 255, 0.08);
   --secondary-border: rgba(255, 255, 255, 0.14);
@@ -180,6 +180,47 @@ body {
   font-size: 15px;
 }
 
+
+.stat-head {
+  flex-wrap: wrap;
+}
+
+.stat-delta {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 24px;
+  text-align: right;
+}
+
+.stat-delta.plus {
+  color: #34d399;
+}
+
+.stat-delta.minus {
+  color: #fb7185;
+}
+
+.pulse {
+  animation: pulse 0.35s ease;
+}
+
+.event-banner {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  background: rgba(251, 191, 36, 0.14);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: #fef3c7;
+}
+
+.hint-text {
+  margin-top: 12px;
+  color: #c7d2fe;
+  font-size: 12px;
+}
+
 .progress-track {
   width: 100%;
   height: 12px;
@@ -199,9 +240,9 @@ body {
 
 .progress-track.good .progress-fill { background: var(--good); }
 .progress-track.energy .progress-fill { background: var(--energy); }
-.progress-track.immunity .progress-fill { background: var(--immunity); }
+.progress-track.hydration .progress-fill { background: var(--hydration); }
 .progress-track.stress .progress-fill { background: var(--stress); }
-.progress-track.risk .progress-fill { background: var(--risk); }
+.progress-track.sleep .progress-fill { background: var(--sleep); }
 
 .scene-content {
   margin-top: 14px;
@@ -384,6 +425,12 @@ body {
   text-align: center;
   font-weight: 800;
   box-shadow: 0 14px 30px rgba(37, 99, 235, 0.3);
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.75; }
+  50% { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 @keyframes fadeUp {
