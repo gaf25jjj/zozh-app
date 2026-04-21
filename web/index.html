@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZdorovLife</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+  <h1>🧠 ZdorovLife</h1>
+
+  <div class="stats">
+    <p>❤️ Здоровье: <span id="health">100</span></p>
+    <p>⚡ Энергия: <span id="energy">100</span></p>
+    <p>🛡️ Иммунитет: <span id="immunity">100</span></p>
+    <p>😰 Стресс: <span id="stress">0</span></p>
+    <p>⚠️ Риск: <span id="risk">0</span></p>
+  </div>
+
+  <div id="scene">
+    <p>Ты проснулся утром. Что будешь делать?</p>
+    <button onclick="choose('breakfast')">🍳 Позавтракать</button>
+    <button onclick="choose('skip')">❌ Пропустить</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
