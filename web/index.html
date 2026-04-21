@@ -1,32 +1,123 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
   <title>ZdorovLife</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta
+    name="theme-color"
+    content="#0b1220"
+  />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="app-bg"></div>
 
-<div class="container">
-  <h1>🧠 ZdorovLife</h1>
+  <main class="app-shell">
+    <section class="hero-card glass">
+      <div class="hero-top">
+        <div class="brand-wrap">
+          <div class="brand-icon">🧠</div>
+          <div>
+            <p class="eyebrow">Мини-приложение ЗОЖ</p>
+            <h1 class="brand-title">ZdorovLife</h1>
+          </div>
+        </div>
+        <div class="badge-live">● online</div>
+      </div>
 
-  <div class="stats">
-    <p>❤️ Здоровье: <span id="health">100</span></p>
-    <p>⚡ Энергия: <span id="energy">100</span></p>
-    <p>🛡️ Иммунитет: <span id="immunity">100</span></p>
-    <p>😰 Стресс: <span id="stress">0</span></p>
-    <p>⚠️ Риск: <span id="risk">0</span></p>
-  </div>
+      <p class="hero-subtitle">
+        Интерактивный тренажёр по здоровому образу жизни и медицинской профилактике.
+      </p>
+    </section>
 
-  <div id="scene">
-    <p>Ты проснулся утром. Что будешь делать?</p>
-    <button onclick="choose('breakfast')">🍳 Позавтракать</button>
-    <button onclick="choose('skip')">❌ Пропустить</button>
-  </div>
-</div>
+    <section class="stats-card glass">
+      <div class="card-header">
+        <h2>Показатели состояния</h2>
+        <span class="mini-chip">в реальном времени</span>
+      </div>
 
-<script src="app.js"></script>
+      <div class="stats-grid">
+        <article class="stat-item">
+          <div class="stat-head">
+            <span class="stat-left">
+              <span class="stat-emoji">❤️</span>
+              <span>Здоровье</span>
+            </span>
+            <span class="stat-value" id="health-value">100</span>
+          </div>
+          <div class="progress-track good">
+            <div class="progress-fill" id="health-bar" style="width: 100%"></div>
+          </div>
+        </article>
 
+        <article class="stat-item">
+          <div class="stat-head">
+            <span class="stat-left">
+              <span class="stat-emoji">⚡</span>
+              <span>Энергия</span>
+            </span>
+            <span class="stat-value" id="energy-value">100</span>
+          </div>
+          <div class="progress-track energy">
+            <div class="progress-fill" id="energy-bar" style="width: 100%"></div>
+          </div>
+        </article>
+
+        <article class="stat-item">
+          <div class="stat-head">
+            <span class="stat-left">
+              <span class="stat-emoji">🛡️</span>
+              <span>Иммунитет</span>
+            </span>
+            <span class="stat-value" id="immunity-value">100</span>
+          </div>
+          <div class="progress-track immunity">
+            <div class="progress-fill" id="immunity-bar" style="width: 100%"></div>
+          </div>
+        </article>
+
+        <article class="stat-item">
+          <div class="stat-head">
+            <span class="stat-left">
+              <span class="stat-emoji">😰</span>
+              <span>Стресс</span>
+            </span>
+            <span class="stat-value" id="stress-value">0</span>
+          </div>
+          <div class="progress-track stress">
+            <div class="progress-fill" id="stress-bar" style="width: 0%"></div>
+          </div>
+        </article>
+
+        <article class="stat-item">
+          <div class="stat-head">
+            <span class="stat-left">
+              <span class="stat-emoji">⚠️</span>
+              <span>Риск заболеваний</span>
+            </span>
+            <span class="stat-value" id="risk-value">0</span>
+          </div>
+          <div class="progress-track risk">
+            <div class="progress-fill" id="risk-bar" style="width: 0%"></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="scene-card glass">
+      <div class="card-header">
+        <h2 id="scene-title">Сценарий дня</h2>
+        <span class="mini-chip" id="scene-step">Этап 1</span>
+      </div>
+
+      <div id="scene" class="scene-content"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
 </body>
 </html>
