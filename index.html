@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>ZdorovLife Mini App</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero glass">
+      <div>
+        <p class="eyebrow">Гигиеническое воспитание • ЗОЖ • профилактика</p>
+        <h1>ZdorovLife</h1>
+        <p class="subtitle">Интерактивная мини-игра внутри Telegram о здоровом образе жизни и профилактике заболеваний.</p>
+      </div>
+      <div class="hero-badge">
+        <span>🎯</span>
+        <strong>Проживи день правильно</strong>
+      </div>
+    </header>
+
+    <section class="dashboard glass">
+      <div class="stat-card">
+        <span>❤️ Здоровье</span>
+        <div class="meter"><i id="healthBar"></i></div>
+        <b id="healthValue">70</b>
+      </div>
+      <div class="stat-card">
+        <span>⚡ Энергия</span>
+        <div class="meter"><i id="energyBar"></i></div>
+        <b id="energyValue">70</b>
+      </div>
+      <div class="stat-card">
+        <span>🛡️ Иммунитет</span>
+        <div class="meter"><i id="immunityBar"></i></div>
+        <b id="immunityValue">70</b>
+      </div>
+      <div class="stat-card">
+        <span>🧠 Стресс</span>
+        <div class="meter danger"><i id="stressBar"></i></div>
+        <b id="stressValue">30</b>
+      </div>
+      <div class="stat-card wide">
+        <span>⚠️ Риск заболеваний</span>
+        <div class="meter danger"><i id="riskBar"></i></div>
+        <b id="riskValue">25</b>
+      </div>
+    </section>
+
+    <main class="scene-card glass">
+      <div class="scene-top">
+        <span id="sceneIndex" class="step-pill">Сцена 1/6</span>
+        <button id="restartBtn" class="ghost-btn" type="button">Начать заново</button>
+      </div>
+      <div class="illustration" id="sceneArt">🌅</div>
+      <h2 id="sceneTitle">Утро начинается</h2>
+      <p id="sceneText">Ты проснулся перед учёбой. От первого выбора зависит твоя энергия и концентрация на весь день.</p>
+
+      <div id="choices" class="choices"></div>
+
+      <div class="feedback hidden" id="feedbackBox">
+        <h3>Профилактический комментарий</h3>
+        <p id="feedbackText"></p>
+        <button id="nextBtn" class="primary-btn" type="button">Дальше</button>
+      </div>
+    </main>
+
+    <section id="resultBox" class="result glass hidden">
+      <div class="result-icon" id="resultIcon">🏆</div>
+      <h2 id="resultTitle">Отличный результат</h2>
+      <p id="resultText"></p>
+      <div id="recommendations" class="recommendations"></div>
+      <button id="shareBtn" class="primary-btn" type="button">Отправить результат в чат</button>
+    </section>
+  </div>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>
