@@ -581,7 +581,7 @@ function renderDecision() {
   document.getElementById("scene-step").textContent = `Day ${state.day} of ${GAME_DAYS} · ${phaseLabel(phase)}`;
   document.getElementById("scene-title").textContent = decision.title;
 
-  document.getElementById("scene").innerHTML = `
+  setSceneContent(`
     <div class="scene-panel">
       ${event ? `<p class="event-banner">${event.text}</p>` : ""}
       <p class="scene-context">${phaseSituationText(phase, decision.id)}</p>
@@ -601,9 +601,48 @@ function renderDecision() {
       <p class="hint-text">Эффект применяется сразу после выбора.</p>
       <div id="inline-feedback" class="inline-feedback" aria-live="polite"></div>
     </div>
-  `;
+  `);
 
   state.currentChoices = updatedChoices;
+}
+
+function setSceneContent(markup) {
+  const scene = document.getElementById("scene");
+  if (!scene) return;
+
+  const nextView = document.createElement("div");
+  nextView.className = "scene-view is-entering";
+  nextView.innerHTML = markup;
+
+  const currentView = scene.querySelector(".scene-view");
+
+  if (!currentView) {
+    scene.innerHTML = "";
+    scene.appendChild(nextView);
+    requestAnimationFrame(() => {
+      nextView.classList.remove("is-entering");
+      nextView.classList.add("is-active");
+    });
+    return;
+  }
+
+  const stableHeight = Math.max(currentView.offsetHeight, nextView.offsetHeight);
+  scene.style.minHeight = `${stableHeight}px`;
+
+  currentView.classList.add("is-leaving");
+  scene.appendChild(nextView);
+
+  requestAnimationFrame(() => {
+    nextView.classList.remove("is-entering");
+    nextView.classList.add("is-active");
+  });
+
+  setTimeout(() => {
+    if (currentView.parentNode === scene) {
+      scene.removeChild(currentView);
+    }
+    scene.style.minHeight = "";
+  }, 280);
 }
 
 function phaseLabel(phase) {
@@ -737,7 +776,7 @@ function renderFinal() {
 
   document.getElementById("scene-step").textContent = `Финал · ${GAME_DAYS} дней`;
   document.getElementById("scene-title").textContent = "Итог симуляции";
-  document.getElementById("scene").innerHTML = `
+  setSceneContent(`
     <div class="result-panel">
       <h3 class="result-title">Твоё состояние: ${condition.label}</h3>
       <section class="summary-card bmi-card ${condition.tone}">
@@ -760,7 +799,7 @@ function renderFinal() {
 
       <button class="restart-btn" onclick="restartGame()">Сыграть заново</button>
     </div>
-  `;
+  `);
 }
 
 function restartGame() {
