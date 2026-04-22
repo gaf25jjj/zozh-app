@@ -766,21 +766,6 @@ function restartGame() {
   location.reload();
 }
 
-function renderStart() {
-  document.getElementById("scene-step").textContent = "Старт";
-  document.getElementById("scene-title").textContent = "Симулятор привычек";
-  document.getElementById("scene").innerHTML = `
-    <div class="scene-panel">
-      <p class="scene-text">Проживи ${GAME_DAYS} дней и собери лучший баланс жизни.</p>
-      <p class="scene-desc">Каждый день: утро, день и вечер. В каждой фазе — реальные выборы с последствиями.</p>
-      <button class="choice-btn primary" onclick="startGame()">
-        <span class="btn-title">Начать игру</span>
-        <span class="btn-subtitle">Решения влияют на здоровье, энергию, стресс, воду и сон</span>
-      </button>
-    </div>
-  `;
-}
-
 function startGame() {
   state.activeEvent = chooseRandomEvent();
   if (state.activeEvent?.baselineDelta) {
@@ -792,9 +777,33 @@ function startGame() {
   renderDecision();
 }
 
+function transitionToGame() {
+  const welcomeScreen = document.getElementById("welcome-screen");
+  const gameScreen = document.getElementById("game-screen");
+
+  if (!welcomeScreen || !gameScreen) {
+    startGame();
+    return;
+  }
+
+  welcomeScreen.classList.add("is-leaving");
+  gameScreen.classList.add("is-visible");
+
+  setTimeout(() => {
+    welcomeScreen.hidden = true;
+    startGame();
+  }, 420);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   updateStatsDisplay();
-  renderStart();
+
+  const startBtn = document.getElementById("welcome-start-btn");
+  if (startBtn) {
+    startBtn.addEventListener("click", transitionToGame);
+  } else {
+    startGame();
+  }
 });
 
 window.pickChoice = pickChoice;
