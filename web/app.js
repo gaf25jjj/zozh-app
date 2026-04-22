@@ -202,19 +202,19 @@ function animateValue(id, newValue) {
 }
 
 const CHARACTER_ASSETS = {
-  neutral: "/assets/characters/character-neutral.png%20.png",
-  stressed: "/assets/characters/character-stressed.png%20.png",
+  neutral: "/assets/characters/character-neutral.png",
+  stressed: "/assets/characters/character-stressed.png",
   energized: "/assets/characters/character-energized.png",
-  sleeping: "/assets/characters/character-sleeping.png%20.png",
+  sleeping: "/assets/characters/character-sleeping.png",
   procrastinating: "/assets/characters/character-procrastinating.png",
   sick: "/assets/characters/character-sick.png",
   optimal: "/assets/characters/character-optimal.png",
-  calm: "/assets/characters/character-calm.png%20.png",
+  calm: "/assets/characters/character-calm.png",
   focused: "/assets/characters/character-focused.png",
   social: "/assets/characters/character-social.png",
   guilty: "/assets/characters/character-guilty.png",
   overeating: "/assets/characters/character-overeating.png",
-  apathetic: "/assets/characters/character-apathetic.png%20.png",
+  apathetic: "/assets/characters/character-apathetic.png",
   overstimulated: "/assets/characters/character-overstimulated.png"
 };
 
@@ -312,6 +312,8 @@ function updateCharacterState() {
   const nextState = computeCharacterState();
   const nextImage = CHARACTER_ASSETS[nextState] ?? CHARACTER_ASSETS.neutral;
   const label = CHARACTER_LABELS[nextState] ?? "neutral";
+
+  console.log("[character-image] selected path:", nextImage);
 
   if (state.characterSwapTimeoutId) {
     clearTimeout(state.characterSwapTimeoutId);
