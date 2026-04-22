@@ -201,21 +201,35 @@ function animateValue(id, newValue) {
   node.classList.add("pulse");
 }
 
-const CHARACTER_ASSETS = {
-  neutral: "/assets/characters/character-neutral.png",
-  stressed: "/assets/characters/character-stressed.png",
-  energized: "/assets/characters/character-energized.png",
-  sleeping: "/assets/characters/character-sleeping.png",
-  procrastinating: "/assets/characters/character-procrastinating.png",
-  sick: "/assets/characters/character-sick.png",
-  optimal: "/assets/characters/character-optimal.png",
-  calm: "/assets/characters/character-calm.png",
-  focused: "/assets/characters/character-focused.png",
-  social: "/assets/characters/character-social.png",
-  guilty: "/assets/characters/character-guilty.png",
-  overeating: "/assets/characters/character-overeating.png",
-  apathetic: "/assets/characters/character-apathetic.png",
-  overstimulated: "/assets/characters/character-overstimulated.png"
+const CHARACTER_FILENAMES = {
+  neutral: "character-neutral.png",
+  stressed: "character-stressed.png",
+  energized: "character-energized.png",
+  sleeping: "character-sleeping.png",
+  procrastinating: "character-procrastinating.png",
+  sick: "character-sick.png",
+  optimal: "character-optimal.png",
+  calm: "character-calm.png",
+  focused: "character-focused.png",
+  social: "character-social.png",
+  guilty: "character-guilty.png",
+  overeating: "character-overeating.png",
+  apathetic: "character-apathetic.png",
+  overstimulated: "character-overstimulated.png"
+};
+
+const CHARACTER_ASSETS_BASE_PATH = "/assets/assets/characters";
+
+const CHARACTER_ASSETS = Object.fromEntries(
+  Object.entries(CHARACTER_FILENAMES).map(([stateKey, filename]) => [stateKey, `${CHARACTER_ASSETS_BASE_PATH}/${filename}`])
+);
+
+const characterImageDebug = {
+  stateKey: "neutral",
+  filename: CHARACTER_FILENAMES.neutral,
+  url: CHARACTER_ASSETS.neutral,
+  status: "idle",
+  error: ""
 };
 
 const CHARACTER_LABELS = {
@@ -307,13 +321,43 @@ function updateCharacterState() {
   const character = document.getElementById("character");
   const characterImage = document.getElementById("character-image");
   const stateText = document.getElementById("character-state-text");
+  const debugLine = document.getElementById("character-debug-line");
+  const debugError = document.getElementById("character-debug-error");
   if (!character || !characterImage || !stateText) return;
 
   const nextState = computeCharacterState();
+  const selectedFilename = CHARACTER_FILENAMES[nextState] ?? CHARACTER_FILENAMES.neutral;
   const nextImage = CHARACTER_ASSETS[nextState] ?? CHARACTER_ASSETS.neutral;
+  const finalImageUrl = new URL(nextImage, window.location.origin).href;
   const label = CHARACTER_LABELS[nextState] ?? "neutral";
+  characterImageDebug.stateKey = nextState;
+  characterImageDebug.filename = selectedFilename;
+  characterImageDebug.url = finalImageUrl;
+  characterImageDebug.status = "loading";
+  characterImageDebug.error = "";
 
-  console.log("[character-image] selected path:", nextImage);
+  const renderCharacterDebug = () => {
+    if (debugLine) {
+      debugLine.textContent = `debug: state=${characterImageDebug.stateKey} | file=${characterImageDebug.filename} | url=${characterImageDebug.url} | status=${characterImageDebug.status}`;
+    }
+    if (debugError) {
+      debugError.textContent = characterImageDebug.error;
+    }
+  };
+
+  renderCharacterDebug();
+  console.log("[character-image] state:", nextState, "filename:", selectedFilename, "url:", finalImageUrl);
+
+  characterImage.onload = () => {
+    characterImageDebug.status = "loaded";
+    characterImageDebug.error = "";
+    renderCharacterDebug();
+  };
+  characterImage.onerror = () => {
+    characterImageDebug.status = "failed";
+    characterImageDebug.error = `Image failed to load: ${characterImageDebug.url}`;
+    renderCharacterDebug();
+  };
 
   if (state.characterSwapTimeoutId) {
     clearTimeout(state.characterSwapTimeoutId);
@@ -323,13 +367,13 @@ function updateCharacterState() {
   if (state.characterState !== nextState) {
     character.classList.add("is-swapping");
     state.characterSwapTimeoutId = setTimeout(() => {
-      characterImage.src = nextImage;
+      characterImage.src = finalImageUrl;
       characterImage.alt = `Состояние персонажа: ${label}`;
       state.characterSwapTimeoutId = null;
       requestAnimationFrame(() => character.classList.remove("is-swapping"));
     }, 120);
   } else {
-    characterImage.src = nextImage;
+    characterImage.src = finalImageUrl;
     characterImage.alt = `Состояние персонажа: ${label}`;
   }
 

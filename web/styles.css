@@ -357,6 +357,20 @@ body {
   text-transform: capitalize;
 }
 
+.character-debug {
+  margin: 0;
+  width: min(100%, 560px);
+  font-size: 12px;
+  line-height: 1.35;
+  color: #93c5fd;
+  text-align: center;
+  word-break: break-word;
+}
+
+.character-debug-error {
+  color: #fda4af;
+}
+
 .scene-content {
   margin-top: 14px;
 }
