@@ -56,6 +56,7 @@ body {
   width: min(100%, 430px);
   margin: 0 auto;
   min-height: 100vh;
+  overflow: hidden;
 }
 
 .glass {
@@ -69,7 +70,10 @@ body {
 
 .welcome-screen,
 .game-screen {
-  min-height: 100vh;
+  position: absolute;
+  inset: 0;
+  min-height: 100%;
+  overflow-y: auto;
   padding: max(16px, env(safe-area-inset-top)) 14px max(18px, env(safe-area-inset-bottom)) 14px;
 }
 
@@ -77,6 +81,9 @@ body {
   display: grid;
   place-items: center;
   text-align: center;
+  z-index: 2;
+  opacity: 1;
+  visibility: visible;
   transition: opacity 0.55s ease, transform 0.55s ease;
 }
 
@@ -84,6 +91,10 @@ body {
   opacity: 0;
   transform: translateY(-14px) scale(0.98);
   pointer-events: none;
+}
+
+.welcome-screen.is-hidden {
+  visibility: hidden;
 }
 
 .welcome-card {
@@ -148,16 +159,29 @@ body {
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: 10px;
+  z-index: 1;
   opacity: 0;
+  visibility: hidden;
   transform: translateY(24px);
   pointer-events: none;
   transition: opacity 0.58s ease, transform 0.58s ease;
 }
 
 .game-screen.is-visible {
+  z-index: 3;
   opacity: 1;
+  visibility: visible;
   transform: translateY(0);
   pointer-events: auto;
+}
+
+.game-debug-label {
+  margin: 0 0 6px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #34d399;
 }
 
 .hud-card,

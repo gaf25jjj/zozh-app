@@ -26,7 +26,8 @@ const state = {
   focusedTurns: 0,
   socialTurns: 0,
   inactivityTurns: 0,
-  wastedTimeTurns: 0
+  wastedTimeTurns: 0,
+  hasStarted: false
 };
 
 const phaseOrder = ["morning", "day", "evening"];
@@ -778,20 +779,25 @@ function startGame() {
 }
 
 function transitionToGame() {
+  if (state.hasStarted) return;
+
   const welcomeScreen = document.getElementById("welcome-screen");
   const gameScreen = document.getElementById("game-screen");
 
   if (!welcomeScreen || !gameScreen) {
+    state.hasStarted = true;
     startGame();
     return;
   }
+
+  state.hasStarted = true;
+  startGame();
 
   welcomeScreen.classList.add("is-leaving");
   gameScreen.classList.add("is-visible");
 
   setTimeout(() => {
-    welcomeScreen.hidden = true;
-    startGame();
+    welcomeScreen.classList.add("is-hidden");
   }, 420);
 }
 
