@@ -224,29 +224,21 @@ const CHARACTER_ASSETS = Object.fromEntries(
   Object.entries(CHARACTER_FILENAMES).map(([stateKey, filename]) => [stateKey, `${CHARACTER_ASSETS_BASE_PATH}/${filename}`])
 );
 
-const characterImageDebug = {
-  stateKey: "neutral",
-  filename: CHARACTER_FILENAMES.neutral,
-  url: CHARACTER_ASSETS.neutral,
-  status: "idle",
-  error: ""
-};
-
 const CHARACTER_LABELS = {
-  neutral: "neutral",
-  stressed: "stressed",
-  energized: "energized",
-  sleeping: "sleeping",
-  procrastinating: "procrastinating",
-  sick: "sick",
-  optimal: "optimal",
-  calm: "calm",
-  focused: "focused",
-  social: "social",
-  guilty: "guilty",
-  overeating: "overeating",
-  apathetic: "apathetic",
-  overstimulated: "overstimulated"
+  neutral: "Нейтральное",
+  stressed: "Стресс",
+  energized: "Подъём",
+  sleeping: "Сонливость",
+  procrastinating: "Прокрастинация",
+  sick: "Недомогание",
+  optimal: "Оптимальное",
+  calm: "Спокойствие",
+  focused: "Фокус",
+  social: "Социальность",
+  guilty: "Вина",
+  overeating: "Переедание",
+  apathetic: "Апатия",
+  overstimulated: "Перевозбуждение"
 };
 
 const CHARACTER_STATE_CLASSES = Object.keys(CHARACTER_ASSETS).map((name) => `state-${name}`);
@@ -321,43 +313,12 @@ function updateCharacterState() {
   const character = document.getElementById("character");
   const characterImage = document.getElementById("character-image");
   const stateText = document.getElementById("character-state-text");
-  const debugLine = document.getElementById("character-debug-line");
-  const debugError = document.getElementById("character-debug-error");
   if (!character || !characterImage || !stateText) return;
 
   const nextState = computeCharacterState();
-  const selectedFilename = CHARACTER_FILENAMES[nextState] ?? CHARACTER_FILENAMES.neutral;
   const nextImage = CHARACTER_ASSETS[nextState] ?? CHARACTER_ASSETS.neutral;
   const finalImageUrl = new URL(nextImage, window.location.origin).href;
-  const label = CHARACTER_LABELS[nextState] ?? "neutral";
-  characterImageDebug.stateKey = nextState;
-  characterImageDebug.filename = selectedFilename;
-  characterImageDebug.url = finalImageUrl;
-  characterImageDebug.status = "loading";
-  characterImageDebug.error = "";
-
-  const renderCharacterDebug = () => {
-    if (debugLine) {
-      debugLine.textContent = `debug: state=${characterImageDebug.stateKey} | file=${characterImageDebug.filename} | url=${characterImageDebug.url} | status=${characterImageDebug.status}`;
-    }
-    if (debugError) {
-      debugError.textContent = characterImageDebug.error;
-    }
-  };
-
-  renderCharacterDebug();
-  console.log("[character-image] state:", nextState, "filename:", selectedFilename, "url:", finalImageUrl);
-
-  characterImage.onload = () => {
-    characterImageDebug.status = "loaded";
-    characterImageDebug.error = "";
-    renderCharacterDebug();
-  };
-  characterImage.onerror = () => {
-    characterImageDebug.status = "failed";
-    characterImageDebug.error = `Image failed to load: ${characterImageDebug.url}`;
-    renderCharacterDebug();
-  };
+  const label = CHARACTER_LABELS[nextState] ?? "Нейтральное";
 
   if (state.characterSwapTimeoutId) {
     clearTimeout(state.characterSwapTimeoutId);
