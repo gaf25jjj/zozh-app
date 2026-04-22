@@ -16,99 +16,96 @@
 <body>
   <div class="app-bg"></div>
 
-  <main class="app-shell">
-    <section class="hero-card glass">
-      <div class="hero-top">
-        <div class="brand-wrap">
-          <div class="brand-icon">🧠</div>
-          <div>
-            <p class="eyebrow">Мини-приложение ЗОЖ</p>
-            <h1 class="brand-title">ZdorovLife</h1>
-          </div>
+  <main class="mobile-root" id="mobile-root">
+    <section class="welcome-screen" id="welcome-screen" aria-label="Welcome screen">
+      <div class="welcome-card glass">
+        <div class="welcome-logo" aria-hidden="true">🧠</div>
+        <p class="welcome-kicker">LIFE SIMULATOR</p>
+        <h1 class="welcome-title">ZdorovLife</h1>
+        <p class="welcome-subtitle">
+          Проживи 7 дней, принимая решения о питании, активности и сне. Каждый выбор мгновенно влияет на твой баланс жизни.
+        </p>
+        <button class="start-btn" id="welcome-start-btn" type="button">Начать</button>
+      </div>
+    </section>
+
+    <section class="game-screen" id="game-screen" aria-label="Game screen">
+      <header class="hud-card glass" aria-label="HUD показатели">
+        <div class="hud-row">
+          <article class="hud-stat">
+            <div class="hud-head">
+              <span class="hud-icon">❤️</span>
+              <span class="hud-label">Здоровье</span>
+              <span class="hud-value" id="health-value">65</span>
+            </div>
+            <div class="hud-track good"><div class="hud-fill" id="health-bar" style="width: 65%"></div></div>
+            <span class="stat-delta" id="health-delta"></span>
+          </article>
+
+          <article class="hud-stat">
+            <div class="hud-head">
+              <span class="hud-icon">⚡</span>
+              <span class="hud-label">Энергия</span>
+              <span class="hud-value" id="energy-value">60</span>
+            </div>
+            <div class="hud-track energy"><div class="hud-fill" id="energy-bar" style="width: 60%"></div></div>
+            <span class="stat-delta" id="energy-delta"></span>
+          </article>
+
+          <article class="hud-stat">
+            <div class="hud-head">
+              <span class="hud-icon">😰</span>
+              <span class="hud-label">Стресс</span>
+              <span class="hud-value" id="stress-value">35</span>
+            </div>
+            <div class="hud-track stress"><div class="hud-fill" id="stress-bar" style="width: 35%"></div></div>
+            <span class="stat-delta" id="stress-delta"></span>
+          </article>
+
+          <article class="hud-stat">
+            <div class="hud-head">
+              <span class="hud-icon">💧</span>
+              <span class="hud-label">Вода</span>
+              <span class="hud-value" id="hydration-value">55</span>
+            </div>
+            <div class="hud-track hydration"><div class="hud-fill" id="hydration-bar" style="width: 55%"></div></div>
+            <span class="stat-delta" id="hydration-delta"></span>
+          </article>
+
+          <article class="hud-stat">
+            <div class="hud-head">
+              <span class="hud-icon">🛌</span>
+              <span class="hud-label">Сон</span>
+              <span class="hud-value" id="sleep-value">60</span>
+            </div>
+            <div class="hud-track sleep"><div class="hud-fill" id="sleep-bar" style="width: 60%"></div></div>
+            <span class="stat-delta" id="sleep-delta"></span>
+          </article>
         </div>
-        <div class="badge-live">● online</div>
-      </div>
+      </header>
 
-      <p class="hero-subtitle">
-        Decision-based симулятор здорового образа жизни: проживи неделю и управляй последствиями каждого решения.
-      </p>
-    </section>
-
-    <section class="hud-card glass" aria-label="HUD показатели">
-      <div class="hud-row">
-        <article class="hud-stat">
-          <div class="hud-head">
-            <span class="hud-icon">❤️</span>
-            <span class="hud-label">Здоровье</span>
-            <span class="hud-value" id="health-value">65</span>
+      <section class="character-card glass">
+        <div class="character-stage" id="character-stage">
+          <div id="character" class="character state-neutral" role="img" aria-label="Состояние персонажа">
+            <img
+              id="character-image"
+              class="character-image"
+              src="/assets/assets/characters/character-neutral.png"
+              alt="Состояние персонажа: Нейтральное"
+            />
           </div>
-          <div class="hud-track good"><div class="hud-fill" id="health-bar" style="width: 65%"></div></div>
-          <span class="stat-delta" id="health-delta"></span>
-        </article>
-
-        <article class="hud-stat">
-          <div class="hud-head">
-            <span class="hud-icon">⚡</span>
-            <span class="hud-label">Энергия</span>
-            <span class="hud-value" id="energy-value">60</span>
-          </div>
-          <div class="hud-track energy"><div class="hud-fill" id="energy-bar" style="width: 60%"></div></div>
-          <span class="stat-delta" id="energy-delta"></span>
-        </article>
-
-        <article class="hud-stat">
-          <div class="hud-head">
-            <span class="hud-icon">😰</span>
-            <span class="hud-label">Стресс</span>
-            <span class="hud-value" id="stress-value">35</span>
-          </div>
-          <div class="hud-track stress"><div class="hud-fill" id="stress-bar" style="width: 35%"></div></div>
-          <span class="stat-delta" id="stress-delta"></span>
-        </article>
-
-        <article class="hud-stat">
-          <div class="hud-head">
-            <span class="hud-icon">💧</span>
-            <span class="hud-label">Вода</span>
-            <span class="hud-value" id="hydration-value">55</span>
-          </div>
-          <div class="hud-track hydration"><div class="hud-fill" id="hydration-bar" style="width: 55%"></div></div>
-          <span class="stat-delta" id="hydration-delta"></span>
-        </article>
-
-        <article class="hud-stat">
-          <div class="hud-head">
-            <span class="hud-icon">🛌</span>
-            <span class="hud-label">Сон</span>
-            <span class="hud-value" id="sleep-value">60</span>
-          </div>
-          <div class="hud-track sleep"><div class="hud-fill" id="sleep-bar" style="width: 60%"></div></div>
-          <span class="stat-delta" id="sleep-delta"></span>
-        </article>
-      </div>
-    </section>
-
-    <section class="character-card glass">
-      <div class="character-stage" id="character-stage">
-        <div id="character" class="character state-neutral" role="img" aria-label="Состояние персонажа">
-          <img
-            id="character-image"
-            class="character-image"
-            src="/assets/assets/characters/character-neutral.png"
-            alt="Состояние персонажа: Нейтральное"
-          />
+          <p class="character-state" id="character-state-text">Состояние: Нейтральное</p>
         </div>
-        <p class="character-state" id="character-state-text">Состояние: Нейтральное</p>
-      </div>
-    </section>
+      </section>
 
-    <section class="scene-card glass">
-      <div class="card-header">
-        <h2 id="scene-title">Сценарий дня</h2>
-        <span class="mini-chip" id="scene-step">Этап 1</span>
-      </div>
+      <section class="scene-card glass">
+        <div class="card-header">
+          <h2 id="scene-title">Сценарий дня</h2>
+          <span class="mini-chip" id="scene-step">Этап 1</span>
+        </div>
 
-      <div id="scene" class="scene-content"></div>
+        <div id="scene" class="scene-content"></div>
+      </section>
     </section>
   </main>
 
