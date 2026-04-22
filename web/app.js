@@ -186,10 +186,31 @@ function clamp(v) {
 
 function animateValue(id, newValue) {
   const node = document.getElementById(id);
+  if (!node) return;
   node.classList.remove("pulse");
   void node.offsetWidth;
   node.textContent = newValue;
   node.classList.add("pulse");
+}
+
+function computeCharacterState() {
+  const { health, energy, stress, sleep, hydration } = state.stats;
+  if (hydration <= 35) return "dehydrated";
+  if (sleep <= 35) return "tired";
+  if (stress >= 70) return "stressed";
+  if (health >= 75 && energy >= 70) return "healthy";
+  return "normal";
+}
+
+function updateCharacterState() {
+  const character = document.getElementById("character");
+  const stateText = document.getElementById("character-state-text");
+  if (!character || !stateText) return;
+
+  const nextState = computeCharacterState();
+  character.classList.remove("normal", "healthy", "stressed", "tired", "dehydrated");
+  character.classList.add(nextState);
+  stateText.textContent = `Состояние: ${nextState}`;
 }
 
 function updateStatsDisplay(previousStats = null) {
@@ -198,9 +219,13 @@ function updateStatsDisplay(previousStats = null) {
     state.stats[key] = safeValue;
 
     animateValue(`${key}-value`, safeValue);
-    document.getElementById(`${key}-bar`).style.width = `${safeValue}%`;
+    const bar = document.getElementById(`${key}-bar`);
+    if (bar) {
+      bar.style.width = `${safeValue}%`;
+    }
 
     const deltaNode = document.getElementById(`${key}-delta`);
+    if (!deltaNode) return;
     if (previousStats) {
       const delta = safeValue - previousStats[key];
       if (delta === 0) {
@@ -213,6 +238,8 @@ function updateStatsDisplay(previousStats = null) {
       deltaNode.textContent = "";
     }
   });
+
+  updateCharacterState();
 }
 
 function chooseRandomEvent() {
