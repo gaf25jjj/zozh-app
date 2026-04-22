@@ -17,7 +17,8 @@ const state = {
   dailyMealOptions: {},
   previousMealSets: {},
   lastActivityChoice: null,
-  activeEvent: null
+  activeEvent: null,
+  feedbackTimeoutId: null
 };
 
 const phaseOrder = ["morning", "day", "evening"];
@@ -394,9 +395,23 @@ function summarizeEffects(effects) {
     .join(" · ");
 }
 
+function phaseSituationText(phase, decisionId) {
+  if (decisionId === "wake_routine") return "Ты проснулся позже обычного и чувствуешь сонливость.";
+  if (decisionId === "breakfast") return "Ты голоден, а до дел остаётся совсем немного времени.";
+  if (decisionId === "day_activity") return "Середина дня: нужно выбрать, как провести время с пользой.";
+  if (decisionId === "lunch") return "Организм просит подпитку, а график всё ещё плотный.";
+  if (decisionId === "evening_activity") return "Вечер наступил — реши, как восстановиться или перезагрузиться.";
+  if (decisionId === "sleep_decision") return "Перед сном важно выбрать, как завершить день.";
+
+  if (phase === "morning") return "Утро задаёт тон всему дню.";
+  if (phase === "day") return "Днём твои решения сильнее всего влияют на баланс.";
+  return "Вечером решения влияют на восстановление и сон.";
+}
+
 function renderDecision() {
   const decision = currentDecision();
   const event = state.activeEvent;
+  const phase = currentPhaseName();
   const sourceChoices = isMealDecision(decision.id) ? state.dailyMealOptions[decision.id] || [] : decision.choices;
 
   const updatedChoices = sourceChoices.map((choice) => {
@@ -404,13 +419,14 @@ function renderDecision() {
     return computed;
   });
 
-  document.getElementById("scene-step").textContent = `День ${state.day} · ${phaseLabel(currentPhaseName())}`;
+  document.getElementById("scene-step").textContent = `Day ${state.day} of ${GAME_DAYS} · ${phaseLabel(phase)}`;
   document.getElementById("scene-title").textContent = decision.title;
 
   document.getElementById("scene").innerHTML = `
     <div class="scene-panel">
       ${event ? `<p class="event-banner">${event.text}</p>` : ""}
-      <p class="scene-desc">Выбор ${state.choiceIndexInPhase + 1} из ${phaseContent[currentPhaseName()].length} в фазе.</p>
+      <p class="scene-context">${phaseSituationText(phase, decision.id)}</p>
+      <p class="scene-desc">Шаг ${state.choiceIndexInPhase + 1} из ${phaseContent[phase].length} в фазе ${phaseLabel(phase)}.</p>
       <div class="choice-grid">
         ${updatedChoices
           .map(
@@ -423,7 +439,8 @@ function renderDecision() {
           )
           .join("")}
       </div>
-      <p class="hint-text">1 тап = мгновенный эффект. Сон, стресс и вода меняют результат.</p>
+      <p class="hint-text">Эффект применяется сразу после выбора.</p>
+      <div id="inline-feedback" class="inline-feedback" aria-live="polite"></div>
     </div>
   `;
 
@@ -431,9 +448,9 @@ function renderDecision() {
 }
 
 function phaseLabel(phase) {
-  if (phase === "morning") return "Утро";
-  if (phase === "day") return "День";
-  return "Вечер";
+  if (phase === "morning") return "Morning";
+  if (phase === "day") return "Day";
+  return "Evening";
 }
 
 function pickChoice(index) {
@@ -470,20 +487,35 @@ function pickChoice(index) {
 }
 
 function showFeedback(previousStats) {
-  document.getElementById("scene").innerHTML = `
-    <div class="scene-panel">
-      <p class="scene-text">${state.feedback}</p>
-      <p class="feedback-text">День ${state.day}, ${phaseLabel(currentPhaseName())}. Продолжаем симуляцию.</p>
-      <button class="choice-btn primary" onclick="advanceGame()">
-        Продолжить
-      </button>
-    </div>
+  updateStatsDisplay(previousStats);
+  const feedbackNode = document.getElementById("inline-feedback");
+  if (!feedbackNode) {
+    advanceGame();
+    return;
+  }
+
+  if (state.feedbackTimeoutId) {
+    clearTimeout(state.feedbackTimeoutId);
+  }
+
+  feedbackNode.innerHTML = `
+    <p class="feedback-text subtle">${state.feedback}</p>
+    <button class="continue-btn" onclick="advanceGame()">Продолжить</button>
   `;
 
-  updateStatsDisplay(previousStats);
+  state.feedbackTimeoutId = setTimeout(() => {
+    if (document.getElementById("inline-feedback") === feedbackNode) {
+      advanceGame();
+    }
+  }, 1200);
 }
 
 function advanceGame() {
+  if (state.feedbackTimeoutId) {
+    clearTimeout(state.feedbackTimeoutId);
+    state.feedbackTimeoutId = null;
+  }
+
   state.choiceIndexInPhase += 1;
 
   const phaseChoices = phaseContent[currentPhaseName()].length;
