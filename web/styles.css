@@ -317,6 +317,7 @@ body {
   place-items: center;
   width: min(280px, 72vw);
   max-width: 100%;
+  aspect-ratio: 1 / 1;
   transition: transform 0.38s ease, filter 0.38s ease;
   transform-origin: center bottom;
   margin: 0 auto;
@@ -338,15 +339,18 @@ body {
   width: 100%;
   height: auto;
   object-fit: contain;
-  transition: opacity 0.24s ease, transform 0.28s ease;
+  transition: opacity 0.26s ease-out, transform 0.26s ease-out;
   opacity: 1;
   position: relative;
   z-index: 1;
+  transform-origin: center bottom;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
 }
 
 .character.is-swapping .character-image {
-  opacity: 0.16;
-  transform: scale(0.97);
+  opacity: 0;
+  transform: scale(0.95);
 }
 
 .character.state-energized { transform: translateY(-3px) scale(1.02); }
