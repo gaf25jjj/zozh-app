@@ -75,7 +75,8 @@ body {
 }
 
 .hero-card,
-.stats-card,
+.hud-card,
+.character-card,
 .scene-card {
   padding: 18px;
 }
@@ -151,17 +152,48 @@ body {
   font-size: 18px;
 }
 
-.stats-grid {
-  margin-top: 14px;
-  display: grid;
-  gap: 14px;
+.hud-card {
+  position: sticky;
+  top: max(8px, env(safe-area-inset-top));
+  z-index: 4;
+  padding: 12px;
 }
 
-.stat-item {
-  padding: 14px;
-  border-radius: 18px;
+.hud-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.hud-stat {
+  position: relative;
+  padding: 8px 10px 10px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hud-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.hud-icon {
+  font-size: 14px;
+}
+
+.hud-label {
+  color: var(--muted);
+}
+
+.hud-value {
+  margin-left: auto;
+  font-weight: 800;
 }
 
 .stat-left {
@@ -179,7 +211,6 @@ body {
   font-weight: 800;
   font-size: 15px;
 }
-
 
 .stat-head {
   flex-wrap: wrap;
@@ -242,7 +273,8 @@ body {
   font-weight: 700;
 }
 
-.progress-track {
+.progress-track,
+.hud-track {
   width: 100%;
   height: 12px;
   margin-top: 10px;
@@ -251,7 +283,8 @@ body {
   background: rgba(255, 255, 255, 0.08);
 }
 
-.progress-fill {
+.progress-fill,
+.hud-fill {
   height: 100%;
   width: 0%;
   border-radius: inherit;
@@ -259,11 +292,56 @@ body {
   box-shadow: 0 0 18px rgba(255, 255, 255, 0.1);
 }
 
-.progress-track.good .progress-fill { background: var(--good); }
-.progress-track.energy .progress-fill { background: var(--energy); }
-.progress-track.hydration .progress-fill { background: var(--hydration); }
-.progress-track.stress .progress-fill { background: var(--stress); }
-.progress-track.sleep .progress-fill { background: var(--sleep); }
+.progress-track.good .progress-fill,
+.hud-track.good .hud-fill { background: var(--good); }
+.progress-track.energy .progress-fill,
+.hud-track.energy .hud-fill { background: var(--energy); }
+.progress-track.hydration .progress-fill,
+.hud-track.hydration .hud-fill { background: var(--hydration); }
+.progress-track.stress .progress-fill,
+.hud-track.stress .hud-fill { background: var(--stress); }
+.progress-track.sleep .progress-fill,
+.hud-track.sleep .hud-fill { background: var(--sleep); }
+
+.character-stage {
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  min-height: 210px;
+}
+
+.character {
+  width: min(180px, 56vw);
+  transition: transform 0.35s ease, filter 0.35s ease;
+}
+
+.character svg {
+  width: 100%;
+  height: auto;
+}
+
+.char-part {
+  fill: #a5b4fc;
+  transition: fill 0.4s ease, opacity 0.4s ease;
+}
+
+.character.normal .char-part { fill: #93c5fd; }
+.character.healthy .char-part { fill: #34d399; }
+.character.stressed .char-part { fill: #fb7185; }
+.character.tired .char-part { fill: #a78bfa; opacity: 0.82; }
+.character.dehydrated .char-part { fill: #38bdf8; opacity: 0.75; }
+
+.character.healthy { transform: translateY(-2px) scale(1.02); }
+.character.stressed { animation: jitter 0.5s ease-in-out infinite alternate; }
+.character.tired { transform: translateY(3px) scale(0.98); }
+.character.dehydrated { filter: saturate(0.7); }
+
+.character-state {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-transform: capitalize;
+}
 
 .scene-content {
   margin-top: 14px;
@@ -475,15 +553,12 @@ body {
   }
 }
 
+@keyframes jitter {
+  from { transform: translateX(-1px); }
+  to { transform: translateX(1px); }
+}
+
 @media (min-width: 700px) {
-  .stats-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .stat-item:last-child {
-    grid-column: 1 / -1;
-  }
-
   .choice-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -500,10 +575,15 @@ body {
   }
 
   .hero-card,
-  .stats-card,
+  .hud-card,
+  .character-card,
   .scene-card {
     padding: 16px;
     border-radius: 22px;
+  }
+
+  .hud-row {
+    grid-template-columns: repeat(5, minmax(110px, 1fr));
   }
 
   .brand-icon {
