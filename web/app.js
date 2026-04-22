@@ -27,7 +27,8 @@ const state = {
   socialTurns: 0,
   inactivityTurns: 0,
   wastedTimeTurns: 0,
-  hasStarted: false
+  hasStarted: false,
+  selectedChoiceIndex: null
 };
 
 const phaseOrder = ["morning", "day", "evening"];
@@ -36,21 +37,21 @@ const phaseContent = {
   morning: [
     {
       id: "wake_routine",
-      title: "Что сделать после пробуждения?",
+      title: "Раннее утро",
       choices: [
         {
-          label: "Ранняя зарядка 💪",
-          subtitle: "+энергия, но можно устать",
+          label: "💪 Бодрый старт",
+          subtitle: "Лёгкая зарядка и душ",
           effects: { health: 6, energy: 7, stress: -4, hydration: -5, sleep: -1 }
         },
         {
-          label: "Полежать в телефоне 📱",
-          subtitle: "быстрый дофамин, хуже фокус",
+          label: "📱 Лента в кровати",
+          subtitle: "Быстрый дофамин, слабый фокус",
           effects: { health: -2, energy: -3, stress: 4, hydration: -2, sleep: -2 }
         },
         {
-          label: "Пропустить рутину 😴",
-          subtitle: "чуть больше сна, меньше продуктивности",
+          label: "😴 Ещё 20 минут",
+          subtitle: "Чуть легче проснуться, но день смещается",
           effects: { health: -1, energy: 3, stress: 2, hydration: -1, sleep: 3 }
         }
       ]
@@ -64,26 +65,26 @@ const phaseContent = {
   day: [
     {
       id: "day_activity",
-      title: "Чем заняться днём?",
+      title: "Дневной блок",
       choices: [
         {
-          label: "Прогулка 🚶",
-          subtitle: "освежает, но зависит от погоды",
+          label: "🚶 Перезагрузка на улице",
+          subtitle: "Короткая прогулка и свежий воздух",
           effects: { health: 5, energy: 3, stress: -4, hydration: -4, sleep: 1 }
         },
         {
-          label: "Учёба/работа продуктивно 📚",
-          subtitle: "прогресс, но может поднять стресс",
+          label: "📚 Глубокий фокус",
+          subtitle: "Продвигаешь дела, но устаёшь",
           effects: { health: 1, energy: -2, stress: 4, hydration: -2, sleep: 0 }
         },
         {
-          label: "Сидеть весь день 🪑",
-          subtitle: "экономия сил сейчас, хуже самочувствие",
+          label: "🪑 Режим «не вставать»",
+          subtitle: "Комфортно сейчас, хуже по ощущениям",
           effects: { health: -4, energy: -3, stress: 2, hydration: -1, sleep: -1 }
         },
         {
-          label: "Встретиться с друзьями 🍻",
-          subtitle: "эмоции +, режим может пострадать",
+          label: "🍻 Вылазка с друзьями",
+          subtitle: "Настроение вверх, режим плавает",
           effects: { health: -1, energy: -1, stress: -5, hydration: -3, sleep: -2 }
         }
       ]
@@ -97,47 +98,47 @@ const phaseContent = {
   evening: [
     {
       id: "evening_activity",
-      title: "Вечерняя активность",
+      title: "Вечерний ритм",
       choices: [
         {
-          label: "Пойти в зал 🏋️",
-          subtitle: "сильный плюс здоровью, расход энергии",
+          label: "🏋️ Тренировка",
+          subtitle: "Сильный буст формы, трата ресурса",
           effects: { health: 7, energy: -6, stress: -3, hydration: -5, sleep: 2 }
         },
         {
-          label: "Смотреть сериал 📺",
-          subtitle: "отдых без нагрузки",
+          label: "📺 Серия перед сном",
+          subtitle: "Небольшой отдых без перегруза",
           effects: { health: -1, energy: 2, stress: -1, hydration: -1, sleep: -1 }
         },
         {
-          label: "Соцсети 📱",
-          subtitle: "легко залипнуть",
+          label: "📱 Скролл без стопа",
+          subtitle: "Залипание и поздний отбой",
           effects: { health: -3, energy: -2, stress: 4, hydration: -1, sleep: -3 }
         },
         {
-          label: "Спокойный релакс 🧘",
-          subtitle: "снижает напряжение",
+          label: "🧘 Тихое восстановление",
+          subtitle: "Сбрасываешь напряжение и выдыхаешь",
           effects: { health: 3, energy: 3, stress: -5, hydration: 1, sleep: 2 }
         }
       ]
     },
     {
       id: "sleep_decision",
-      title: "Решение по сну",
+      title: "Финал дня",
       choices: [
         {
-          label: "Лечь пораньше 😴",
-          subtitle: "лучшее восстановление",
+          label: "😴 Ранний отбой",
+          subtitle: "Лучшее восстановление",
           effects: { health: 4, energy: 8, stress: -3, hydration: 0, sleep: 8 }
         },
         {
-          label: "Поздно лечь 🌙",
-          subtitle: "средний компромисс",
+          label: "🌙 Ещё немного дел",
+          subtitle: "Компромисс между задачами и отдыхом",
           effects: { health: -1, energy: -2, stress: 2, hydration: 0, sleep: -4 }
         },
         {
-          label: "Очень поздно лечь 🌃",
-          subtitle: "максимальный сбой режима",
+          label: "🌃 Ночной марафон",
+          subtitle: "Сильный сбой режима",
           effects: { health: -4, energy: -7, stress: 5, hydration: -1, sleep: -9 }
         }
       ]
@@ -285,8 +286,8 @@ function decayMoodFlags() {
 }
 
 function updateChoiceDrivenFlags(choice, decisionId) {
-  const looksWasted = /телефоне|Соцсети|Сидеть весь день/i.test(choice.label);
-  const studyingChoice = decisionId === "day_activity" && /Учёба\/работа/i.test(choice.label);
+  const looksWasted = /Лента в кровати|Скролл|не вставать/i.test(choice.label);
+  const studyingChoice = decisionId === "day_activity" && /Глубокий фокус/i.test(choice.label);
   const socialChoice = /друзья/i.test(choice.label);
   const junkMeal = isMealDecision(decisionId) && (choice.category === "fast_food" || choice.category === "quick_snacks");
   const badByEffects = (choice.effects.health ?? 0) <= -5 || (choice.effects.sleep ?? 0) <= -4 || (choice.effects.stress ?? 0) >= 5;
@@ -298,7 +299,7 @@ function updateChoiceDrivenFlags(choice, decisionId) {
   }
 
   const activityChoice = decisionId === "day_activity" || decisionId === "evening_activity";
-  if (activityChoice && (/Сидеть весь день|Соцсети|сериал/i.test(choice.label))) {
+  if (activityChoice && (/не вставать|Скролл|Серия/i.test(choice.label))) {
     state.inactivityTurns = Math.min(3, state.inactivityTurns + 1);
   } else if (activityChoice) {
     state.inactivityTurns = Math.max(0, state.inactivityTurns - 1);
@@ -555,12 +556,12 @@ function summarizeEffects(effects) {
 }
 
 function phaseSituationText(phase, decisionId) {
-  if (decisionId === "wake_routine") return "Ты проснулся позже обычного и чувствуешь сонливость.";
-  if (decisionId === "breakfast") return "Ты голоден, а до дел остаётся совсем немного времени.";
-  if (decisionId === "day_activity") return "Середина дня: нужно выбрать, как провести время с пользой.";
-  if (decisionId === "lunch") return "Организм просит подпитку, а график всё ещё плотный.";
-  if (decisionId === "evening_activity") return "Вечер наступил — реши, как восстановиться или перезагрузиться.";
-  if (decisionId === "sleep_decision") return "Перед сном важно выбрать, как завершить день.";
+  if (decisionId === "wake_routine") return "Будильник стих. Как запускаешь день?";
+  if (decisionId === "breakfast") return "Первый приём пищи задаст ритм утра.";
+  if (decisionId === "day_activity") return "Середина дня. Нужен ход, который двинет тебя дальше.";
+  if (decisionId === "lunch") return "Пауза на питание: восстановиться или перегрузиться?";
+  if (decisionId === "evening_activity") return "Вечер. Выбирай между зарядом и шумом.";
+  if (decisionId === "sleep_decision") return "До конца дня один выбор. Закрепи результат.";
 
   if (phase === "morning") return "Утро задаёт тон всему дню.";
   if (phase === "day") return "Днём твои решения сильнее всего влияют на баланс.";
@@ -578,7 +579,7 @@ function renderDecision() {
     return computed;
   });
 
-  document.getElementById("scene-step").textContent = `Day ${state.day} of ${GAME_DAYS} · ${phaseLabel(phase)}`;
+  document.getElementById("scene-step").textContent = `День ${state.day}/${GAME_DAYS} · ${phaseLabel(phase)}`;
   document.getElementById("scene-title").textContent = decision.title;
 
   setSceneContent(`
@@ -590,9 +591,12 @@ function renderDecision() {
         ${updatedChoices
           .map(
             (choice, index) => `
-            <button class="choice-btn ${index === 0 ? "primary" : "secondary"}" onclick="pickChoice(${index})">
-              <span class="btn-title">${choice.label}</span>
-              <span class="btn-subtitle">${choice.subtitle}</span>
+            <button id="choice-${index}" class="choice-btn ${index === 0 ? "primary" : "secondary"}" onclick="pickChoice(${index})">
+              <span class="choice-icon">${extractChoiceIcon(choice.label)}</span>
+              <span>
+                <span class="btn-title">${cleanChoiceTitle(choice.label)}</span>
+                <span class="btn-subtitle">${choice.subtitle}</span>
+              </span>
             </button>
           `
           )
@@ -604,6 +608,16 @@ function renderDecision() {
   `);
 
   state.currentChoices = updatedChoices;
+  state.selectedChoiceIndex = null;
+}
+
+function extractChoiceIcon(label) {
+  const icon = (label.match(/\p{Extended_Pictographic}/u) || [])[0];
+  return icon || "✨";
+}
+
+function cleanChoiceTitle(label) {
+  return label.replace(/\p{Extended_Pictographic}/gu, "").trim();
 }
 
 function setSceneContent(markup) {
@@ -646,12 +660,18 @@ function setSceneContent(markup) {
 }
 
 function phaseLabel(phase) {
-  if (phase === "morning") return "Morning";
-  if (phase === "day") return "Day";
-  return "Evening";
+  if (phase === "morning") return "Утро";
+  if (phase === "day") return "День";
+  return "Вечер";
 }
 
 function pickChoice(index) {
+  state.selectedChoiceIndex = index;
+  const selectedBtn = document.getElementById(`choice-${index}`);
+  if (selectedBtn) {
+    selectedBtn.classList.add("is-picked");
+  }
+
   decayMoodFlags();
   const choice = state.currentChoices[index];
   const decisionId = currentDecision().id;
