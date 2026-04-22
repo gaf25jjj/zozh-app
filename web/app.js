@@ -18,7 +18,15 @@ const state = {
   previousMealSets: {},
   lastActivityChoice: null,
   activeEvent: null,
-  feedbackTimeoutId: null
+  feedbackTimeoutId: null,
+  characterState: "neutral",
+  characterSwapTimeoutId: null,
+  recentBadChoiceTurns: 0,
+  overeatingTurns: 0,
+  focusedTurns: 0,
+  socialTurns: 0,
+  inactivityTurns: 0,
+  wastedTimeTurns: 0
 };
 
 const phaseOrder = ["morning", "day", "evening"];
@@ -193,24 +201,140 @@ function animateValue(id, newValue) {
   node.classList.add("pulse");
 }
 
+const CHARACTER_ASSETS = {
+  neutral: "/assets/characters/character-neutral.png%20.png",
+  stressed: "/assets/characters/character-stressed.png%20.png",
+  energized: "/assets/characters/character-energized.png",
+  sleeping: "/assets/characters/character-sleeping.png%20.png",
+  procrastinating: "/assets/characters/character-procrastinating.png",
+  sick: "/assets/characters/character-sick.png",
+  optimal: "/assets/characters/character-optimal.png",
+  calm: "/assets/characters/character-calm.png%20.png",
+  focused: "/assets/characters/character-focused.png",
+  social: "/assets/characters/character-social.png",
+  guilty: "/assets/characters/character-guilty.png",
+  overeating: "/assets/characters/character-overeating.png",
+  apathetic: "/assets/characters/character-apathetic.png%20.png",
+  overstimulated: "/assets/characters/character-overstimulated.png"
+};
+
+const CHARACTER_LABELS = {
+  neutral: "neutral",
+  stressed: "stressed",
+  energized: "energized",
+  sleeping: "sleeping",
+  procrastinating: "procrastinating",
+  sick: "sick",
+  optimal: "optimal",
+  calm: "calm",
+  focused: "focused",
+  social: "social",
+  guilty: "guilty",
+  overeating: "overeating",
+  apathetic: "apathetic",
+  overstimulated: "overstimulated"
+};
+
+const CHARACTER_STATE_CLASSES = Object.keys(CHARACTER_ASSETS).map((name) => `state-${name}`);
+
+function isBalancedProfile(stats) {
+  const values = [stats.health, stats.energy, stats.hydration, stats.sleep];
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  return (
+    stats.health >= 55 &&
+    stats.energy >= 52 &&
+    stats.hydration >= 50 &&
+    stats.sleep >= 52 &&
+    stats.stress <= 42 &&
+    max - min <= 22
+  );
+}
+
 function computeCharacterState() {
   const { health, energy, stress, sleep, hydration } = state.stats;
-  if (hydration <= 35) return "dehydrated";
-  if (sleep <= 35) return "tired";
-  if (stress >= 70) return "stressed";
-  if (health >= 75 && energy >= 70) return "healthy";
-  return "normal";
+
+  if (health <= 20) return "sick";
+  if (state.overeatingTurns > 0) return "overeating";
+  if (state.recentBadChoiceTurns > 0) return "guilty";
+  if (energy >= 78 && stress >= 72) return "overstimulated";
+  if (stress >= 75) return "stressed";
+  if (sleep <= 22 || (sleep <= 30 && hydration <= 30 && energy <= 42)) return "apathetic";
+  if (sleep <= 30 || hydration <= 24) return "sleeping";
+  if (state.focusedTurns > 0) return "focused";
+  if (state.socialTurns > 0) return "social";
+  if (state.inactivityTurns >= 2 || state.wastedTimeTurns >= 2) return "procrastinating";
+  if (stress <= 28 && energy >= 40 && energy <= 72) return "calm";
+  if (energy >= 72 && stress <= 36) return "energized";
+  if (isBalancedProfile(state.stats)) return "optimal";
+  return "neutral";
+}
+
+function decayMoodFlags() {
+  state.recentBadChoiceTurns = Math.max(0, state.recentBadChoiceTurns - 1);
+  state.overeatingTurns = Math.max(0, state.overeatingTurns - 1);
+  state.focusedTurns = Math.max(0, state.focusedTurns - 1);
+  state.socialTurns = Math.max(0, state.socialTurns - 1);
+}
+
+function updateChoiceDrivenFlags(choice, decisionId) {
+  const looksWasted = /телефоне|Соцсети|Сидеть весь день/i.test(choice.label);
+  const studyingChoice = decisionId === "day_activity" && /Учёба\/работа/i.test(choice.label);
+  const socialChoice = /друзья/i.test(choice.label);
+  const junkMeal = isMealDecision(decisionId) && (choice.category === "fast_food" || choice.category === "quick_snacks");
+  const badByEffects = (choice.effects.health ?? 0) <= -5 || (choice.effects.sleep ?? 0) <= -4 || (choice.effects.stress ?? 0) >= 5;
+
+  if (looksWasted) {
+    state.wastedTimeTurns = Math.min(3, state.wastedTimeTurns + 1);
+  } else {
+    state.wastedTimeTurns = Math.max(0, state.wastedTimeTurns - 1);
+  }
+
+  const activityChoice = decisionId === "day_activity" || decisionId === "evening_activity";
+  if (activityChoice && (/Сидеть весь день|Соцсети|сериал/i.test(choice.label))) {
+    state.inactivityTurns = Math.min(3, state.inactivityTurns + 1);
+  } else if (activityChoice) {
+    state.inactivityTurns = Math.max(0, state.inactivityTurns - 1);
+  }
+
+  if (studyingChoice) state.focusedTurns = 2;
+  if (socialChoice) state.socialTurns = 2;
+  if (junkMeal) state.overeatingTurns = 2;
+  if (badByEffects || junkMeal || looksWasted) state.recentBadChoiceTurns = 2;
 }
 
 function updateCharacterState() {
   const character = document.getElementById("character");
+  const characterImage = document.getElementById("character-image");
   const stateText = document.getElementById("character-state-text");
-  if (!character || !stateText) return;
+  if (!character || !characterImage || !stateText) return;
 
   const nextState = computeCharacterState();
-  character.classList.remove("normal", "healthy", "stressed", "tired", "dehydrated");
-  character.classList.add(nextState);
-  stateText.textContent = `Состояние: ${nextState}`;
+  const nextImage = CHARACTER_ASSETS[nextState] ?? CHARACTER_ASSETS.neutral;
+  const label = CHARACTER_LABELS[nextState] ?? "neutral";
+
+  if (state.characterSwapTimeoutId) {
+    clearTimeout(state.characterSwapTimeoutId);
+    state.characterSwapTimeoutId = null;
+  }
+
+  if (state.characterState !== nextState) {
+    character.classList.add("is-swapping");
+    state.characterSwapTimeoutId = setTimeout(() => {
+      characterImage.src = nextImage;
+      characterImage.alt = `Состояние персонажа: ${label}`;
+      state.characterSwapTimeoutId = null;
+      requestAnimationFrame(() => character.classList.remove("is-swapping"));
+    }, 120);
+  } else {
+    characterImage.src = nextImage;
+    characterImage.alt = `Состояние персонажа: ${label}`;
+  }
+
+  character.classList.remove(...CHARACTER_STATE_CLASSES);
+  character.classList.add(`state-${nextState}`);
+  stateText.textContent = `Состояние: ${label}`;
+  state.characterState = nextState;
 }
 
 function updateStatsDisplay(previousStats = null) {
@@ -481,6 +605,7 @@ function phaseLabel(phase) {
 }
 
 function pickChoice(index) {
+  decayMoodFlags();
   const choice = state.currentChoices[index];
   const decisionId = currentDecision().id;
   const previousStats = { ...state.stats };
@@ -498,6 +623,7 @@ function pickChoice(index) {
   });
 
   state.stats = nextStats;
+  updateChoiceDrivenFlags(choice, decisionId);
   if (decisionId === "day_activity" || decisionId === "evening_activity") {
     state.lastActivityChoice = choice.label;
   }

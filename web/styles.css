@@ -311,30 +311,44 @@ body {
 }
 
 .character {
-  width: min(180px, 56vw);
-  transition: transform 0.35s ease, filter 0.35s ease;
+  width: min(220px, 62vw);
+  max-width: 100%;
+  transition: transform 0.38s ease, filter 0.38s ease;
+  transform-origin: center bottom;
 }
 
-.character svg {
+.character-image {
+  display: block;
   width: 100%;
   height: auto;
+  object-fit: contain;
+  transition: opacity 0.24s ease, transform 0.28s ease;
+  opacity: 1;
 }
 
-.char-part {
-  fill: #a5b4fc;
-  transition: fill 0.4s ease, opacity 0.4s ease;
+.character.is-swapping .character-image {
+  opacity: 0.16;
+  transform: scale(0.97);
 }
 
-.character.normal .char-part { fill: #93c5fd; }
-.character.healthy .char-part { fill: #34d399; }
-.character.stressed .char-part { fill: #fb7185; }
-.character.tired .char-part { fill: #a78bfa; opacity: 0.82; }
-.character.dehydrated .char-part { fill: #38bdf8; opacity: 0.75; }
+.character.state-energized { transform: translateY(-3px) scale(1.02); }
+.character.state-stressed { filter: saturate(1.1); }
+.character.state-sleeping { transform: translateY(2px) scale(0.985); }
+.character.state-overstimulated { filter: contrast(1.08) saturate(1.1); }
+.character.state-calm { filter: saturate(0.95); }
+.character.state-focused { transform: scale(1.015); }
+.character.state-apathetic { filter: saturate(0.84); }
+.character.state-optimal { transform: translateY(-2px) scale(1.018); }
+.character.state-sick { filter: grayscale(0.12); }
+.character.state-procrastinating { transform: translateY(2px); }
+.character.state-guilty { filter: brightness(0.95); }
+.character.state-overeating { filter: contrast(0.97); }
+.character.state-social { transform: translateY(-1px) scale(1.01); }
+.character.state-neutral { filter: none; }
 
-.character.healthy { transform: translateY(-2px) scale(1.02); }
-.character.stressed { animation: jitter 0.5s ease-in-out infinite alternate; }
-.character.tired { transform: translateY(3px) scale(0.98); }
-.character.dehydrated { filter: saturate(0.7); }
+.character.state-stressed .character-image {
+  animation: jitter 0.5s ease-in-out infinite alternate;
+}
 
 .character-state {
   margin: 0;
