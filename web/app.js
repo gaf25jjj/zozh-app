@@ -27,9 +27,40 @@ const state = {
   socialTurns: 0,
   inactivityTurns: 0,
   wastedTimeTurns: 0,
+  goodHabitStreak: 0,
+  badHabitStreak: 0,
+  endOfDayLog: [],
   hasStarted: false,
   selectedChoiceIndex: null
 };
+
+const STAGES = [
+  { key: "chaos",    min: 0,  label: "Chaos" },
+  { key: "unstable", min: 25, label: "Unstable" },
+  { key: "normal",   min: 45, label: "Normal" },
+  { key: "balanced", min: 60, label: "Balanced" },
+  { key: "peak",     min: 80, label: "Peak" }
+];
+
+function computeLifeBalance() {
+  const { health, energy, stress, sleep, hydration } = state.stats;
+  const score = Math.round((health + energy + (100 - stress) + hydration + sleep) / 5);
+  const stage = [...STAGES].reverse().find((s) => score >= s.min) || STAGES[0];
+  return { score, stage };
+}
+
+function updateBalanceDisplay() {
+  const { score, stage } = computeLifeBalance();
+  const chip = document.getElementById("balance-chip");
+  const valueNode = document.getElementById("balance-value");
+  const stageNode = document.getElementById("balance-stage");
+  if (valueNode) valueNode.textContent = score;
+  if (stageNode) stageNode.textContent = stage.label;
+  if (chip) {
+    chip.classList.remove("is-chaos","is-unstable","is-normal","is-balanced","is-peak");
+    chip.classList.add(`is-${stage.key}`);
+  }
+}
 
 const phaseOrder = ["morning", "day", "evening"];
 
@@ -187,7 +218,8 @@ const randomEvents = [
   { id: "stressful_day", text: "😵 Стрессовый день: базовый стресс выше.", baselineDelta: { stress: 5 } },
   { id: "friends_invite_fast_food", text: "🍔 Позвали на фастфуд: вредные варианты соблазнительнее.", biasedCategories: ["fast_food"] },
   { id: "no_food_at_home", text: "🛒 Дома пусто: выбор сильно ограничен.", allowCategories: ["quick_snacks", "drinks"] },
-  { id: "bad_weather", text: "🌧️ Погода испортилась: прогулка менее эффективна.", appliesTo: ["day_activity"] }
+  { id: "bad_weather", text: "🌧️ Погода испортилась: прогулка менее эффективна.", appliesTo: ["day_activity"] },
+  { id: "bad_sleep_night", text: "🌙 Плохо спал ночью: старт дня тяжёлый.", baselineDelta: { sleep: -8, energy: -4, stress: 3 } }
 ];
 
 function clamp(v) {
@@ -309,6 +341,39 @@ function updateChoiceDrivenFlags(choice, decisionId) {
   if (socialChoice) state.socialTurns = 2;
   if (junkMeal) state.overeatingTurns = 2;
   if (badByEffects || junkMeal || looksWasted) state.recentBadChoiceTurns = 2;
+
+  const isGoodChoice =
+    choice.category === "healthy_meals" ||
+    choice.category === "homemade_meals" ||
+    (choice.tags?.includes("hydration") && choice.category === "drinks") ||
+    /Бодрый старт|Тихое восстановление|Тренировка|Прогулка|Перезагрузка на улице|Ранний отбой/i.test(choice.label);
+  const isBadChoice =
+    junkMeal || looksWasted ||
+    /Ночной марафон|Энергетик|Алкоголь/i.test(choice.label);
+
+  if (isGoodChoice && !isBadChoice) {
+    state.goodHabitStreak += 1;
+    state.badHabitStreak = Math.max(0, state.badHabitStreak - 1);
+  } else if (isBadChoice) {
+    state.badHabitStreak += 1;
+    state.goodHabitStreak = Math.max(0, state.goodHabitStreak - 1);
+  }
+}
+
+function applyEndOfDayProgression() {
+  const notes = [];
+  if (state.goodHabitStreak >= 4) {
+    state.stats.health = clamp(state.stats.health + 3);
+    state.stats.stress = clamp(state.stats.stress - 3);
+    notes.push("серия здоровых привычек: +3 здоровье, −3 стресс");
+  }
+  if (state.badHabitStreak >= 4) {
+    state.stats.health = clamp(state.stats.health - 3);
+    state.stats.energy = clamp(state.stats.energy - 2);
+    state.stats.stress = clamp(state.stats.stress + 3);
+    notes.push("серия плохих привычек: −3 здоровье, +3 стресс");
+  }
+  state.endOfDayLog.push({ day: state.day, notes });
 }
 
 function updateCharacterState() {
@@ -373,6 +438,7 @@ function updateStatsDisplay(previousStats = null) {
   });
 
   updateCharacterState();
+  updateBalanceDisplay();
 }
 
 function chooseRandomEvent() {
@@ -516,6 +582,17 @@ function applyComboAndProgression(nextStats, selectedChoice, decisionId) {
   if (selectedChoice.tags?.includes("hydration") && hadRecentActivity) {
     nextStats.energy += 3;
     comboMessages.push("комбо: hydration+activity");
+  }
+
+  if (selectedChoice.category === "drinks" && selectedChoice.tags?.includes("hydration") && hadRecentActivity) {
+    nextStats.health += 1;
+    comboMessages.push("комбо: вода+активность");
+  }
+
+  if (selectedChoice.category === "healthy_meals" && state.stats.sleep >= 65) {
+    nextStats.health += 2;
+    nextStats.stress -= 2;
+    comboMessages.push("комбо: сон+полезное (восстановление)");
   }
 
   if (isMealDecision(decisionId)) {
@@ -745,6 +822,7 @@ function advanceGame() {
   }
 
   if (state.phaseIndex >= phaseOrder.length) {
+    applyEndOfDayProgression();
     state.phaseIndex = 0;
     state.day += 1;
     state.activeEvent = chooseRandomEvent();
@@ -767,9 +845,10 @@ function advanceGame() {
 }
 
 function finalStateText(score) {
-  if (score >= 70) return { label: "Здоровый стиль жизни", tone: "good" };
-  if (score >= 45) return { label: "Средний баланс", tone: "warn" };
-  return { label: "Нездоровый сценарий / выгорание", tone: "bad" };
+  if (score >= 75) return { label: "Peak — пик баланса жизни", tone: "good" };
+  if (score >= 55) return { label: "Balanced — устойчивый баланс", tone: "good" };
+  if (score >= 30) return { label: "Average — средний результат", tone: "warn" };
+  return { label: "Burnout — выгорание", tone: "bad" };
 }
 
 function buildPersonalRecommendations() {
@@ -788,9 +867,7 @@ function buildPersonalRecommendations() {
 }
 
 function renderFinal() {
-  const score = Math.round(
-    (state.stats.health + state.stats.energy + (100 - state.stats.stress) + state.stats.hydration + state.stats.sleep) / 5
-  );
+  const { score, stage } = computeLifeBalance();
   const condition = finalStateText(score);
   const recommendations = buildPersonalRecommendations();
 
@@ -800,7 +877,7 @@ function renderFinal() {
     <div class="result-panel">
       <h3 class="result-title">Твоё состояние: ${condition.label}</h3>
       <section class="summary-card bmi-card ${condition.tone}">
-        <strong>Итоговый индекс благополучия</strong>
+        <strong>Life Balance · ${stage.label}</strong>
         <p class="result-text">${score}/100 после ${GAME_DAYS} игровых дней</p>
       </section>
 

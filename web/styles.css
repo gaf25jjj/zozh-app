@@ -144,9 +144,24 @@ body { overflow: hidden; overscroll-behavior: none; }
 }
 
 .hud-topline {
-  display: flex; justify-content: space-between; align-items: center; gap: 8px;
-  margin-bottom: 6px;
+  display: flex; justify-content: space-between; align-items: center; gap: 6px;
+  margin-bottom: 6px; flex-wrap: wrap;
 }
+.balance-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 800; color: #2f3b4d;
+  padding: 4px 9px; border-radius: 999px;
+  background: linear-gradient(135deg, rgba(52,211,153,0.22), rgba(56,189,248,0.18));
+  border: 1px solid rgba(52,180,140,0.35);
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+.balance-icon { font-size: 12px; line-height: 1; }
+.balance-chip.is-chaos    { background: linear-gradient(135deg,#fecaca,#fca5a5); border-color:#f87171; color:#7f1d1d; }
+.balance-chip.is-unstable { background: linear-gradient(135deg,#fed7aa,#fdba74); border-color:#fb923c; color:#7c2d12; }
+.balance-chip.is-normal   { background: linear-gradient(135deg,#fde68a,#fcd34d); border-color:#f59e0b; color:#78350f; }
+.balance-chip.is-balanced { background: linear-gradient(135deg,#bbf7d0,#86efac); border-color:#22c55e; color:#14532d; }
+.balance-chip.is-peak     { background: linear-gradient(135deg,#a7f3d0,#67e8f9); border-color:#06b6d4; color:#0c4a6e; }
+#balance-stage { color: #3a4759; }
 .hud-run-title {
   margin: 0; font-size: 10px; letter-spacing: 0.1em; font-weight: 700;
   color: #71819a; text-transform: uppercase;

@@ -24,7 +24,7 @@
         <p class="welcome-kicker">LIFE SIMULATOR</p>
         <h1 class="welcome-title">ZdorovLife</h1>
         <p class="welcome-subtitle">
-          Проживи 7 дней, принимая решения о питании, активности и сне. Каждый выбор мгновенно влияет на твой баланс жизни.
+          Цель: прожить 7 дней и достичь баланса жизни. Каждое решение влияет на здоровье, сон, стресс, воду и энергию.
         </p>
         <button class="start-btn" id="welcome-start-btn" type="button">Начать</button>
       </div>
@@ -34,7 +34,11 @@
       <div class="game-shell">
         <header class="game-hud" aria-label="HUD показатели">
           <div class="hud-topline">
-            <p class="hud-run-title">ZdorovLife Run</p>
+            <p class="hud-run-title">ZdorovLife · <span id="balance-stage">Normal</span></p>
+            <span class="balance-chip is-normal" id="balance-chip" title="Life Balance">
+              <span class="balance-icon" aria-hidden="true">⚖️</span>
+              <span class="balance-value" id="balance-value">60</span>
+            </span>
             <span class="mini-chip" id="scene-step">Day 1 of 7 · Morning</span>
           </div>
 
