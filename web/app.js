@@ -42,6 +42,82 @@ const STAGES = [
   { key: "peak",     min: 80, label: "Peak" }
 ];
 
+const LEADERBOARD_KEY = "zdorovlife.leaderboard.v1";
+const MAX_LEADERBOARD = 20;
+
+function getPlayerName() {
+  try {
+    const tg = window.Telegram && window.Telegram.WebApp;
+    const u = tg?.initDataUnsafe?.user;
+    if (u) {
+      const full = [u.first_name, u.last_name].filter(Boolean).join(" ").trim();
+      return full || u.username || "Игрок";
+    }
+  } catch (_) {}
+  return "Игрок";
+}
+
+function loadLeaderboard() {
+  try {
+    const raw = localStorage.getItem(LEADERBOARD_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveScoreToLeaderboard(score, ending) {
+  try {
+    const entry = { name: getPlayerName(), score, ending, at: Date.now() };
+    const list = loadLeaderboard();
+    list.push(entry);
+    list.sort((a, b) => b.score - a.score);
+    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(list.slice(0, MAX_LEADERBOARD)));
+  } catch (_) {}
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[<>&"]/g, (c) => ({"<":"&lt;",">":"&gt;","&":"&amp;","\"":"&quot;"}[c]));
+}
+
+function renderLeaderboard() {
+  const list = document.getElementById("leaderboard-list");
+  if (!list) return;
+  const entries = loadLeaderboard().sort((a, b) => b.score - a.score);
+  if (!entries.length) {
+    list.innerHTML = `<p class="leaderboard-empty">Пока нет результатов</p>`;
+    return;
+  }
+  list.innerHTML = entries.map((e, i) => {
+    const rank = i + 1;
+    const topClass = rank <= 3 ? `is-top${rank}` : "";
+    return `<div class="leaderboard-row ${topClass}">
+      <span class="leaderboard-rank">${rank}</span>
+      <span>
+        <span class="leaderboard-name">${escapeHtml(e.name || "Игрок")}</span>
+        <span class="leaderboard-ending">${escapeHtml(e.ending || "")}</span>
+      </span>
+      <span class="leaderboard-score">${Number(e.score) || 0}</span>
+    </div>`;
+  }).join("");
+}
+
+function showLeaderboard() {
+  renderLeaderboard();
+  const welcome = document.getElementById("welcome-screen");
+  const board = document.getElementById("leaderboard-screen");
+  welcome?.classList.add("is-hidden");
+  board?.classList.add("is-visible");
+}
+
+function hideLeaderboard() {
+  const welcome = document.getElementById("welcome-screen");
+  const board = document.getElementById("leaderboard-screen");
+  board?.classList.remove("is-visible");
+  welcome?.classList.remove("is-hidden");
+}
+
 function computeLifeBalance() {
   const { health, energy, stress, sleep, hydration } = state.stats;
   const score = Math.round((health + energy + (100 - stress) + hydration + sleep) / 5);
@@ -869,6 +945,7 @@ function buildPersonalRecommendations() {
 function renderFinal() {
   const { score, stage } = computeLifeBalance();
   const condition = finalStateText(score);
+  saveScoreToLeaderboard(score, condition.label);
   const recommendations = buildPersonalRecommendations();
 
   document.getElementById("scene-step").textContent = `Финал · ${GAME_DAYS} дней`;
@@ -968,6 +1045,9 @@ document.addEventListener("DOMContentLoaded", () => {
   } else {
     startGame();
   }
+
+  document.getElementById("welcome-leaderboard-btn")?.addEventListener("click", showLeaderboard);
+  document.getElementById("leaderboard-back-btn")?.addEventListener("click", hideLeaderboard);
 });
 
 window.pickChoice = pickChoice;
