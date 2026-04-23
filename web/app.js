@@ -860,7 +860,29 @@ function transitionToGame() {
   }, 420);
 }
 
+function setupTelegramWebApp() {
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (!tg) return;
+  try {
+    tg.ready();
+    tg.expand();
+    if (typeof tg.requestFullscreen === "function") {
+      try { tg.requestFullscreen(); } catch (_) {}
+    }
+    const applyViewport = () => {
+      const h = tg.viewportStableHeight || tg.viewportHeight || window.innerHeight;
+      document.documentElement.style.setProperty("--tg-vh", `${h}px`);
+    };
+    applyViewport();
+    tg.onEvent && tg.onEvent("viewportChanged", applyViewport);
+    if (tg.themeParams && tg.themeParams.bg_color) {
+      document.documentElement.style.setProperty("--tg-bg", tg.themeParams.bg_color);
+    }
+  } catch (_) {}
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  setupTelegramWebApp();
   updateStatsDisplay();
 
   const startBtn = document.getElementById("welcome-start-btn");
