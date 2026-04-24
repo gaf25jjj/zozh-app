@@ -1,0 +1,77 @@
+Improve the game by adding player identity, more variety in choices, and better replayability.
+
+1. Player name
+- Before the game starts, add a simple input where the player enters a name
+- Use that name during the run and on the final result screen
+- Keep the name input clean, fast, and mobile-friendly
+
+2. More variety in choices
+- Expand the pool of decisions for Morning / Day / Evening
+- Avoid repeating the same exact options too often
+- Randomize or rotate options between runs and between days
+- Keep choices realistic and relevant to the healthy lifestyle theme
+
+3. Food variety
+- Use real meal names instead of generic labels
+- Include categories such as:
+  - healthy breakfast
+  - homemade food
+  - fast food
+  - snacks
+  - drinks
+- Examples:
+  - oatmeal with berries
+  - omelet with vegetables
+  - soup
+  - rice with chicken
+  - burger
+  - pizza
+  - shawarma
+  - instant noodles
+  - coffee
+  - water
+  - energy drink
+
+4. Activity variety
+- Add more daytime and evening actions:
+  - walk
+  - exercise
+  - study
+  - rest
+  - scroll phone
+  - meet friends
+  - sleep early
+  - skip routine
+- Make each option have both positive and negative effects
+
+5. Reduce repetitiveness
+- Do not show identical combinations every day
+- Build a larger event/choice pool and pick from it dynamically
+- Make the game feel different on repeated playthroughs
+
+6. Improve feedback
+- After each choice, show a short natural feedback message
+- Keep it brief and game-like
+- No long text blocks
+
+7. Preserve current systems
+- Keep current character states
+- Keep current stat system
+- Keep current day / phase structure
+- Do not break the current mobile layout
+
+8. Optional improvement
+- If possible, add a few lightweight random events such as:
+  - no time to cook
+  - stressful day
+  - bad weather
+  - invited to fast food
+
+9. UI
+- Keep everything mobile-first
+- Keep the current premium game-like style
+- Do not clutter the screen
+
+10. Before pushing
+- Show updated diff
+- Highlight the main gameplay/content changes
