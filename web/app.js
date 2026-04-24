@@ -32,7 +32,9 @@ const state = {
   endOfDayLog: [],
   hasStarted: false,
   selectedChoiceIndex: null,
-  player: { name: "", heroId: "lena" }
+  player: { name: "", heroId: "lena" },
+  dailyActionOptions: {},
+  recentActionIds: {}
 };
 
 const STAGES = [
@@ -410,6 +412,123 @@ const FOOD_ITEMS = [
   { name: "Энергетик ⚡", category: "drinks", tags: ["drink", "stimulant"], effects: { health: -6, energy: 10, stress: 3, hydration: -4, sleep: -3 } },
   { name: "Алкоголь 🍺", category: "drinks", tags: ["drink", "junk"], effects: { health: -8, energy: -2, stress: -1, hydration: -8, sleep: -4 } }
 ];
+
+const ACTION_POOLS = {
+  wake_routine: [
+    { id: "wr_workout", label: "💪 Бодрый старт", subtitle: "Лёгкая зарядка и душ", tags: ["athletic", "calm"], effects: { health: 6, energy: 7, stress: -4, hydration: -5, sleep: -1 } },
+    { id: "wr_meditate", label: "🧘 Утренняя медитация", subtitle: "10 минут тишины и дыхания", tags: ["yoga", "mindful", "calm"], effects: { health: 3, energy: 4, stress: -7, hydration: 0, sleep: 1 } },
+    { id: "wr_run", label: "🏃 Утренняя пробежка", subtitle: "Кардио и свежий воздух", tags: ["athletic", "outdoor", "high_energy"], effects: { health: 7, energy: 6, stress: -5, hydration: -6, sleep: -1 } },
+    { id: "wr_phone", label: "📱 Лента в кровати", subtitle: "Быстрый дофамин, слабый фокус", tags: ["wasted", "social"], effects: { health: -2, energy: -3, stress: 4, hydration: -2, sleep: -2 } },
+    { id: "wr_snooze", label: "😴 Ещё 20 минут", subtitle: "Чуть легче проснуться, день смещается", tags: ["calm", "wasted"], effects: { health: -1, energy: 3, stress: 2, hydration: -1, sleep: 3 } },
+    { id: "wr_book", label: "📖 Несколько страниц книги", subtitle: "Спокойный вход в день", tags: ["study", "reading", "calm"], effects: { health: 2, energy: 2, stress: -3, hydration: 0, sleep: 0 } },
+    { id: "wr_cold", label: "🚿 Холодный душ", subtitle: "Мощный буст бодрости", tags: ["athletic", "high_energy"], effects: { health: 5, energy: 9, stress: -2, hydration: -2, sleep: -1 } },
+    { id: "wr_coffee", label: "☕ Спокойный кофе у окна", subtitle: "Мягкий старт", tags: ["calm", "stimulant", "mindful"], effects: { health: 1, energy: 6, stress: -3, hydration: -3, sleep: -1 } },
+    { id: "wr_sketch", label: "🎨 Утренний скетч", subtitle: "Идея в блокнот", tags: ["creative", "art", "mindful"], effects: { health: 2, energy: 3, stress: -4, hydration: 0, sleep: 0 } },
+    { id: "wr_call", label: "📞 Позвонить близкому", subtitle: "Тёплый разговор с утра", tags: ["social", "mood"], effects: { health: 2, energy: 3, stress: -4, hydration: 0, sleep: 0 } },
+    { id: "wr_journal", label: "📝 Дневник благодарности", subtitle: "Три пункта о хорошем", tags: ["mindful", "reflective", "calm"], effects: { health: 2, energy: 2, stress: -5, hydration: 0, sleep: 1 } },
+    { id: "wr_music", label: "🎵 Бодрая музыка громко", subtitle: "Заряд настроения", tags: ["mood", "creative", "high_energy"], effects: { health: 1, energy: 5, stress: -3, hydration: 0, sleep: -1 } }
+  ],
+  day_activity: [
+    { id: "da_walk", label: "🚶 Перезагрузка на улице (Прогулка)", subtitle: "Короткая прогулка, свежий воздух", tags: ["outdoor", "calm"], effects: { health: 5, energy: 3, stress: -4, hydration: -4, sleep: 1 } },
+    { id: "da_focus", label: "📚 Глубокий фокус", subtitle: "Продвигаешь дела, но устаёшь", tags: ["study", "focus"], effects: { health: 1, energy: -2, stress: 4, hydration: -2, sleep: 0 } },
+    { id: "da_couch", label: "🪑 Режим «не вставать»", subtitle: "Комфортно сейчас, хуже потом", tags: ["wasted"], effects: { health: -4, energy: -3, stress: 2, hydration: -1, sleep: -1 } },
+    { id: "da_friends", label: "🍻 Вылазка с друзьями", subtitle: "Настроение вверх, режим плавает", tags: ["social", "mood"], effects: { health: -1, energy: -1, stress: -5, hydration: -3, sleep: -2 } },
+    { id: "da_gym", label: "🏋️ Зал на час", subtitle: "Сильная тренировка", tags: ["athletic", "high_energy"], effects: { health: 7, energy: -3, stress: -3, hydration: -5, sleep: 1 } },
+    { id: "da_yoga", label: "🧘 Йога-сессия", subtitle: "Растяжка и дыхание", tags: ["yoga", "calm", "mindful"], effects: { health: 5, energy: 4, stress: -6, hydration: -2, sleep: 1 } },
+    { id: "da_create", label: "🎨 Креативный проект", subtitle: "Поток идей", tags: ["creative", "art"], effects: { health: 2, energy: 3, stress: -4, hydration: -1, sleep: 0 } },
+    { id: "da_meet", label: "🤝 Встреча 1-на-1", subtitle: "Глубокий разговор", tags: ["social", "study"], effects: { health: 1, energy: 1, stress: -3, hydration: -1, sleep: 0 } },
+    { id: "da_bike", label: "🚴 Велопрогулка", subtitle: "Активность на воздухе", tags: ["outdoor", "athletic", "high_energy"], effects: { health: 6, energy: 4, stress: -4, hydration: -5, sleep: 1 } },
+    { id: "da_call", label: "📞 Звонок-перезагрузка с другом", subtitle: "Поддержка и обмен новостями", tags: ["social", "mood"], effects: { health: 1, energy: 2, stress: -4, hydration: 0, sleep: 0 } },
+    { id: "da_plan", label: "📊 Разбор задач и план", subtitle: "Чувствуешь контроль", tags: ["study", "focus", "calm"], effects: { health: 2, energy: 1, stress: -3, hydration: -1, sleep: 0 } },
+    { id: "da_park", label: "🌳 Парк с кофе", subtitle: "Тихая пауза", tags: ["outdoor", "calm", "mindful"], effects: { health: 3, energy: 3, stress: -5, hydration: -2, sleep: 0 } },
+    { id: "da_game", label: "🎮 Часик игры", subtitle: "Лёгкое залипание", tags: ["wasted", "mood"], effects: { health: -2, energy: 1, stress: -1, hydration: -1, sleep: -1 } },
+    { id: "da_shop", label: "🛍️ Импульсивный шопинг", subtitle: "Быстрая радость, лёгкий стресс", tags: ["mood", "wasted"], effects: { health: -1, energy: -1, stress: 2, hydration: -1, sleep: 0 } }
+  ],
+  evening_activity: [
+    { id: "ea_workout", label: "🏋️ Тренировка", subtitle: "Сильный буст формы", tags: ["athletic", "high_energy"], effects: { health: 7, energy: -6, stress: -3, hydration: -5, sleep: 2 } },
+    { id: "ea_series", label: "📺 Серия перед сном", subtitle: "Небольшой отдых", tags: ["calm", "wasted"], effects: { health: -1, energy: 2, stress: -1, hydration: -1, sleep: -1 } },
+    { id: "ea_scroll", label: "📱 Скролл без стопа", subtitle: "Залипание и поздний отбой", tags: ["wasted"], effects: { health: -3, energy: -2, stress: 4, hydration: -1, sleep: -3 } },
+    { id: "ea_yoga", label: "🧘 Тихое восстановление", subtitle: "Сбрасываешь напряжение", tags: ["yoga", "calm", "mindful"], effects: { health: 3, energy: 3, stress: -5, hydration: 1, sleep: 2 } },
+    { id: "ea_create", label: "🎨 Творческий вечер", subtitle: "Делаешь что-то для себя", tags: ["creative", "art"], effects: { health: 3, energy: 2, stress: -4, hydration: 0, sleep: 1 } },
+    { id: "ea_wine", label: "🍷 Вино с друзьями", subtitle: "Душевный вечер, плавающий режим", tags: ["social", "mood"], effects: { health: -3, energy: -1, stress: -4, hydration: -4, sleep: -2 } },
+    { id: "ea_read", label: "📖 Чтение в тишине", subtitle: "Спокойный конец дня", tags: ["study", "reading", "calm"], effects: { health: 2, energy: 1, stress: -4, hydration: 0, sleep: 2 } },
+    { id: "ea_walk", label: "🚶 Вечерняя прогулка", subtitle: "Лёгкое движение и воздух", tags: ["outdoor", "calm"], effects: { health: 4, energy: 2, stress: -4, hydration: -2, sleep: 2 } },
+    { id: "ea_cook", label: "🍳 Готовка ужина для близких", subtitle: "Тёплый ритм вечера", tags: ["social", "creative", "mindful"], effects: { health: 4, energy: 1, stress: -3, hydration: -1, sleep: 0 } },
+    { id: "ea_jam", label: "🎵 Жам с инструментом", subtitle: "Музыка для души", tags: ["creative", "mood"], effects: { health: 2, energy: 2, stress: -4, hydration: -1, sleep: 0 } },
+    { id: "ea_swim", label: "🏊 Бассейн", subtitle: "Кардио без перегруза", tags: ["athletic", "calm"], effects: { health: 6, energy: -2, stress: -4, hydration: -2, sleep: 3 } },
+    { id: "ea_bath", label: "🛁 Длинная ванна", subtitle: "Полное расслабление", tags: ["calm", "mindful"], effects: { health: 3, energy: 2, stress: -6, hydration: 1, sleep: 3 } },
+    { id: "ea_movie", label: "🎬 Кино с попкорном", subtitle: "Полный отдых мозга", tags: ["wasted", "mood"], effects: { health: -1, energy: 1, stress: -2, hydration: -1, sleep: -1 } },
+    { id: "ea_journal", label: "📝 Дневник дня", subtitle: "Подвести итоги", tags: ["mindful", "reflective", "calm"], effects: { health: 2, energy: 1, stress: -4, hydration: 0, sleep: 1 } }
+  ],
+  sleep_decision: [
+    { id: "sd_early", label: "😴 Ранний отбой", subtitle: "Лучшее восстановление", tags: ["calm", "mindful"], effects: { health: 4, energy: 8, stress: -3, hydration: 0, sleep: 8 } },
+    { id: "sd_more", label: "🌙 Ещё немного дел", subtitle: "Компромисс", tags: ["study", "focus"], effects: { health: -1, energy: -2, stress: 2, hydration: 0, sleep: -4 } },
+    { id: "sd_late", label: "🌃 Ночной марафон", subtitle: "Сильный сбой режима", tags: ["wasted", "high_energy"], effects: { health: -4, energy: -7, stress: 5, hydration: -1, sleep: -9 } },
+    { id: "sd_book", label: "📖 Книга при тусклом свете", subtitle: "Постепенно засыпаешь", tags: ["reading", "calm", "mindful"], effects: { health: 3, energy: 6, stress: -4, hydration: 0, sleep: 6 } },
+    { id: "sd_breath", label: "🧘 Дыхательная практика", subtitle: "4-7-8 и сон", tags: ["yoga", "mindful", "calm"], effects: { health: 4, energy: 6, stress: -6, hydration: 0, sleep: 7 } },
+    { id: "sd_podcast", label: "🎧 Спокойный подкаст", subtitle: "Успокаивает мысли", tags: ["calm", "study"], effects: { health: 2, energy: 5, stress: -3, hydration: 0, sleep: 5 } },
+    { id: "sd_social", label: "📱 Соцсети в кровати", subtitle: "Залипание до полуночи", tags: ["social", "wasted"], effects: { health: -2, energy: -3, stress: 3, hydration: -1, sleep: -4 } },
+    { id: "sd_shower", label: "🛁 Тёплый душ перед сном", subtitle: "Расслабляющий ритуал", tags: ["calm", "mindful"], effects: { health: 3, energy: 5, stress: -4, hydration: 1, sleep: 5 } }
+  ]
+};
+
+const HERO_AFFINITY = {
+  lena:  { primary: ["yoga", "mindful", "calm"], secondary: ["outdoor", "reading", "reflective"] },
+  max:   { primary: ["athletic", "high_energy", "outdoor"], secondary: ["competitive", "mood"] },
+  artem: { primary: ["study", "focus", "reading"], secondary: ["calm", "stimulant", "mindful"] },
+  nika:  { primary: ["creative", "art", "social", "mood"], secondary: ["expressive", "reflective"] }
+};
+
+function pickActionsForDecision(decisionId) {
+  const pool = ACTION_POOLS[decisionId] || [];
+  if (!pool.length) return [];
+  const heroId = state.player?.heroId || "lena";
+  const aff = HERO_AFFINITY[heroId] || HERO_AFFINITY.lena;
+  const recent = new Set(state.recentActionIds[decisionId] || []);
+
+  const scored = pool.map((a) => {
+    const tags = a.tags || [];
+    const primaryHits = tags.filter((t) => aff.primary.includes(t)).length;
+    const secondaryHits = tags.filter((t) => aff.secondary.includes(t)).length;
+    let weight = 1 + primaryHits * 3 + secondaryHits * 1.2;
+    if (recent.has(a.id)) weight *= 0.25;
+    return { action: a, weight, primaryHits };
+  });
+
+  const picked = [];
+  const remaining = scored.slice();
+  while (picked.length < 3 && remaining.length) {
+    const total = remaining.reduce((s, x) => s + x.weight, 0);
+    let r = Math.random() * total;
+    let idx = 0;
+    for (let i = 0; i < remaining.length; i++) {
+      r -= remaining[i].weight;
+      if (r <= 0) { idx = i; break; }
+    }
+    picked.push(remaining[idx]);
+    remaining.splice(idx, 1);
+  }
+
+  // Variety guard: if all 3 are hero-matched, swap last with a non-match
+  if (picked.length === 3 && picked.every((p) => p.primaryHits > 0)) {
+    const altIdx = remaining.findIndex((x) => x.primaryHits === 0);
+    if (altIdx >= 0) picked[2] = remaining[altIdx];
+  }
+
+  state.recentActionIds[decisionId] = picked.map((p) => p.action.id);
+
+  return picked.map((p) => ({
+    ...p.action,
+    effects: { ...p.action.effects },
+    matchesHero: p.primaryHits > 0
+  }));
+}
+
+function prepareActionChoicesForDay() {
+  Object.keys(ACTION_POOLS).forEach((decisionId) => {
+    state.dailyActionOptions[decisionId] = pickActionsForDecision(decisionId);
+  });
+}
 
 const FOOD_CATEGORY_LABELS = {
   healthy_meals: "полезное",
@@ -855,7 +974,11 @@ function renderDecision() {
   const decision = currentDecision();
   const event = state.activeEvent;
   const phase = currentPhaseName();
-  const sourceChoices = isMealDecision(decision.id) ? state.dailyMealOptions[decision.id] || [] : decision.choices;
+  const sourceChoices = isMealDecision(decision.id)
+    ? state.dailyMealOptions[decision.id] || []
+    : (state.dailyActionOptions[decision.id] && state.dailyActionOptions[decision.id].length
+        ? state.dailyActionOptions[decision.id]
+        : decision.choices);
 
   const updatedChoices = sourceChoices.map((choice) => {
     let computed = adaptChoiceByState(choice);
@@ -874,7 +997,8 @@ function renderDecision() {
         ${updatedChoices
           .map(
             (choice, index) => `
-            <button id="choice-${index}" class="choice-btn ${index === 0 ? "primary" : "secondary"}" onclick="pickChoice(${index})">
+            <button id="choice-${index}" class="choice-btn ${index === 0 ? "primary" : "secondary"} ${choice.matchesHero ? "is-hero-match" : ""}" onclick="pickChoice(${index})">
+              ${choice.matchesHero ? `<span class="hero-match-badge" title="Подходит твоему герою">★</span>` : ""}
               <span class="choice-icon">${extractChoiceIcon(choice.label)}</span>
               <span>
                 <span class="btn-title">${cleanChoiceTitle(choice.label)}</span>
@@ -1039,6 +1163,7 @@ function advanceGame() {
     }
     if (state.day <= GAME_DAYS) {
       prepareFoodChoicesForDay();
+      prepareActionChoicesForDay();
     }
   }
 
@@ -1118,6 +1243,7 @@ function startGame() {
     });
   }
   prepareFoodChoicesForDay();
+  prepareActionChoicesForDay();
   renderDecision();
 }
 

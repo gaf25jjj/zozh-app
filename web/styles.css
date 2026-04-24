@@ -570,6 +570,21 @@ body { overflow: hidden; overscroll-behavior: none; }
   background: linear-gradient(135deg, rgba(52, 211, 153, 0.18), rgba(56, 189, 248, 0.14), #ffffff);
   border-color: rgba(52, 180, 140, 0.35);
 }
+.choice-btn.is-hero-match {
+  position: relative;
+  border-color: rgba(26, 138, 95, 0.45);
+  box-shadow: 0 8px 16px rgba(26, 138, 95, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.choice-btn .hero-match-badge {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #b08a16;
+  line-height: 1;
+  pointer-events: none;
+}
 .choice-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 18px rgba(108, 88, 66, 0.16), inset 0 1px 0 rgba(255,255,255,0.7); }
 .choice-btn:active,
 .restart-btn:active,
