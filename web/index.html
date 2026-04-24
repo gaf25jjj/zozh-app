@@ -31,6 +31,31 @@
       </div>
     </section>
 
+    <section class="hero-select-screen" id="hero-select-screen" aria-label="Выбор героя">
+      <div class="hero-card-wrap glass">
+        <header class="hero-header">
+          <button class="back-btn" id="hero-back-btn" type="button" aria-label="Назад">←</button>
+          <h2 class="hero-title">Создай героя</h2>
+          <span class="leaderboard-spacer" aria-hidden="true"></span>
+        </header>
+
+        <label class="hero-name-label" for="hero-name-input">Имя героя</label>
+        <input
+          id="hero-name-input"
+          class="hero-name-input"
+          type="text"
+          maxlength="20"
+          autocomplete="off"
+          placeholder="Например: Лена"
+        />
+
+        <p class="hero-section-label">Выбери персонажа</p>
+        <div class="hero-grid" id="hero-grid" role="radiogroup" aria-label="Персонажи"></div>
+
+        <button class="start-btn" id="hero-confirm-btn" type="button">Начать игру</button>
+      </div>
+    </section>
+
     <section class="leaderboard-screen" id="leaderboard-screen" aria-label="Лидеры">
       <div class="leaderboard-card glass">
         <header class="leaderboard-header">
@@ -46,7 +71,7 @@
       <div class="game-shell">
         <header class="game-hud" aria-label="HUD показатели">
           <div class="hud-topline">
-            <p class="hud-run-title">ZdorovLife · <span id="balance-stage">Normal</span></p>
+            <p class="hud-run-title"><span id="hud-player-name">ZdorovLife</span> · <span id="balance-stage">Normal</span></p>
             <span class="balance-chip is-normal" id="balance-chip" title="Life Balance">
               <span class="balance-icon" aria-hidden="true">⚖️</span>
               <span class="balance-value" id="balance-value">60</span>

@@ -31,7 +31,8 @@ const state = {
   badHabitStreak: 0,
   endOfDayLog: [],
   hasStarted: false,
-  selectedChoiceIndex: null
+  selectedChoiceIndex: null,
+  player: { name: "", heroId: "lena" }
 };
 
 const STAGES = [
@@ -45,16 +46,56 @@ const STAGES = [
 const LEADERBOARD_KEY = "zdorovlife.leaderboard.v1";
 const MAX_LEADERBOARD = 20;
 
-function getPlayerName() {
+const HEROES = [
+  {
+    id: "lena",
+    name: "Лена",
+    trait: "Йог · спокойствие",
+    avatar: "/assets/assets/characters/character-calm.png",
+    statMods: { health: 5, stress: -5 }
+  },
+  {
+    id: "max",
+    name: "Макс",
+    trait: "Спортсмен · энергия",
+    avatar: "/assets/assets/characters/character-energized.png",
+    statMods: { energy: 8, hydration: 5, sleep: -5 }
+  },
+  {
+    id: "artem",
+    name: "Артём",
+    trait: "Студент · фокус",
+    avatar: "/assets/assets/characters/character-focused.png",
+    statMods: { energy: 5, sleep: -5, stress: 4 }
+  },
+  {
+    id: "nika",
+    name: "Ника",
+    trait: "Креатив · социум",
+    avatar: "/assets/assets/characters/character-social.png",
+    statMods: { stress: -3, hydration: -3, energy: 3 }
+  }
+];
+
+function getHeroById(id) {
+  return HEROES.find((h) => h.id === id) || HEROES[0];
+}
+
+function getTelegramName() {
   try {
     const tg = window.Telegram && window.Telegram.WebApp;
     const u = tg?.initDataUnsafe?.user;
     if (u) {
       const full = [u.first_name, u.last_name].filter(Boolean).join(" ").trim();
-      return full || u.username || "Игрок";
+      return full || u.username || "";
     }
   } catch (_) {}
-  return "Игрок";
+  return "";
+}
+
+function getPlayerName() {
+  if (state.player?.name) return state.player.name;
+  return getTelegramName() || "Игрок";
 }
 
 function loadLeaderboard() {
@@ -101,6 +142,95 @@ function renderLeaderboard() {
       <span class="leaderboard-score">${Number(e.score) || 0}</span>
     </div>`;
   }).join("");
+}
+
+function renderHeroGrid() {
+  const grid = document.getElementById("hero-grid");
+  if (!grid) return;
+  const selectedId = state.player.heroId || HEROES[0].id;
+  grid.innerHTML = HEROES.map((h) => {
+    const mods = Object.entries(h.statMods).map(([key, delta]) => {
+      const sign = delta > 0 ? "+" : "";
+      const cls = delta > 0 ? "up" : "down";
+      const label = ({
+        health: "Здоровье", energy: "Энергия", stress: "Стресс",
+        hydration: "Вода", sleep: "Сон"
+      })[key] || key;
+      return `<span class="hero-mod-chip ${cls}">${label} ${sign}${delta}</span>`;
+    }).join("");
+    return `<button type="button" class="hero-card ${h.id === selectedId ? "is-selected" : ""}" data-hero-id="${h.id}" role="radio" aria-checked="${h.id === selectedId}">
+      <span class="hero-avatar"><img src="${h.avatar}" alt="${escapeHtml(h.name)}" /></span>
+      <span class="hero-card-name">${escapeHtml(h.name)}</span>
+      <span class="hero-card-trait">${escapeHtml(h.trait)}</span>
+      <span class="hero-card-mods">${mods}</span>
+    </button>`;
+  }).join("");
+
+  grid.querySelectorAll(".hero-card").forEach((card) => {
+    card.addEventListener("click", () => selectHero(card.dataset.heroId));
+  });
+}
+
+function selectHero(heroId) {
+  const hero = getHeroById(heroId);
+  state.player.heroId = hero.id;
+  const grid = document.getElementById("hero-grid");
+  grid?.querySelectorAll(".hero-card").forEach((card) => {
+    const isMatch = card.dataset.heroId === hero.id;
+    card.classList.toggle("is-selected", isMatch);
+    card.setAttribute("aria-checked", isMatch ? "true" : "false");
+  });
+  const input = document.getElementById("hero-name-input");
+  if (input && !input.value.trim()) {
+    input.placeholder = `Например: ${hero.name}`;
+  }
+}
+
+function showHeroSelect() {
+  const welcome = document.getElementById("welcome-screen");
+  const heroScreen = document.getElementById("hero-select-screen");
+  renderHeroGrid();
+  const input = document.getElementById("hero-name-input");
+  if (input && !input.value) {
+    const tgName = getTelegramName();
+    if (tgName) input.value = tgName;
+  }
+  welcome?.classList.add("is-hidden");
+  heroScreen?.classList.add("is-visible");
+}
+
+function hideHeroSelect() {
+  const welcome = document.getElementById("welcome-screen");
+  const heroScreen = document.getElementById("hero-select-screen");
+  heroScreen?.classList.remove("is-visible");
+  welcome?.classList.remove("is-hidden");
+}
+
+function confirmHeroAndStart() {
+  if (state.hasStarted) return;
+  const input = document.getElementById("hero-name-input");
+  const typed = (input?.value || "").trim();
+  const hero = getHeroById(state.player.heroId);
+  state.player.name = typed || getTelegramName() || hero.name;
+
+  Object.entries(hero.statMods).forEach(([key, delta]) => {
+    if (state.stats[key] != null) {
+      state.stats[key] = clamp(state.stats[key] + delta);
+    }
+  });
+
+  const heroScreen = document.getElementById("hero-select-screen");
+  const gameScreen = document.getElementById("game-screen");
+  state.hasStarted = true;
+  startGame();
+  updateStatsDisplay();
+  updateBalanceDisplay();
+
+  const nameNode = document.getElementById("hud-player-name");
+  if (nameNode) nameNode.textContent = state.player.name;
+
+  heroScreen?.classList.remove("is-visible");
+  gameScreen?.classList.add("is-visible");
 }
 
 function showLeaderboard() {
@@ -1041,13 +1171,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const startBtn = document.getElementById("welcome-start-btn");
   if (startBtn) {
-    startBtn.addEventListener("click", transitionToGame);
+    startBtn.addEventListener("click", showHeroSelect);
   } else {
     startGame();
   }
 
   document.getElementById("welcome-leaderboard-btn")?.addEventListener("click", showLeaderboard);
   document.getElementById("leaderboard-back-btn")?.addEventListener("click", hideLeaderboard);
+  document.getElementById("hero-back-btn")?.addEventListener("click", hideHeroSelect);
+  document.getElementById("hero-confirm-btn")?.addEventListener("click", confirmHeroAndStart);
 });
 
 window.pickChoice = pickChoice;
