@@ -1,0 +1,26 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "TdAQTLZT1vQgJuVoy8EXb"
+uri = "file://web/assets/heroes/lena.png"
+type = "image"
+title = "lena yoga calm"
+
+[[generated]]
+id = "rnNyBAOerG4zsbOn216rx"
+uri = "file://web/assets/heroes/max.png"
+type = "image"
+title = "max athlete energy"
+
+[[generated]]
+id = "rSs_3_Fm7hCgyhIjHxqLK"
+uri = "file://web/assets/heroes/artem.png"
+type = "image"
+title = "artem student focus"
+
+[[generated]]
+id = "0ZXL96aZHqCv8nN1m7wdz"
+uri = "file://web/assets/heroes/nika.png"
+type = "image"
+title = "nika creative social"

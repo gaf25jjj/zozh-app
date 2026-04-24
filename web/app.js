@@ -51,28 +51,28 @@ const HEROES = [
     id: "lena",
     name: "Лена",
     trait: "Йог · спокойствие",
-    avatar: "/assets/assets/characters/character-calm.png",
+    avatar: "/assets/assets/heroes/lena.png",
     statMods: { health: 5, stress: -5 }
   },
   {
     id: "max",
     name: "Макс",
     trait: "Спортсмен · энергия",
-    avatar: "/assets/assets/characters/character-energized.png",
+    avatar: "/assets/assets/heroes/max.png",
     statMods: { energy: 8, hydration: 5, sleep: -5 }
   },
   {
     id: "artem",
     name: "Артём",
     trait: "Студент · фокус",
-    avatar: "/assets/assets/characters/character-focused.png",
+    avatar: "/assets/assets/heroes/artem.png",
     statMods: { energy: 5, sleep: -5, stress: 4 }
   },
   {
     id: "nika",
     name: "Ника",
     trait: "Креатив · социум",
-    avatar: "/assets/assets/characters/character-social.png",
+    avatar: "/assets/assets/heroes/nika.png",
     statMods: { stress: -3, hydration: -3, energy: 3 }
   }
 ];
